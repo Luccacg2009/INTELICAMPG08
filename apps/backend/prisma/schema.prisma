@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  ANALYST
+}
+
+enum UserVertical {
+  MARKETING
+  PRODUCT
+  SALES
+  ENGINEERING
+  DESIGN
+  OPERATIONS
+  FINANCE
+  HR
+  LEGAL
+  OTHER
+}
+
+enum IdeaStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  IN_DEVELOPMENT
+  LAUNCHED
+  ARCHIVED
+}
+
+enum FeedbackType {
+  POSITIVE
+  NEGATIVE
+}
+
+enum AIDeletionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  passwordHash  String
+  name          String
+  role          UserRole     @default(ANALYST)
+  vertical      UserVertical @default(MARKETING)
+  avatarUrl     String?
+  isActive      Boolean      @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  ideas         Idea[]       @relation("IdeaAuthor")
+  feedbacks     Feedback[]   @relation("FeedbackAuthor")
+  aiDeletions   AIDeletion[] @relation("AIDeletionRequester")
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+model Idea {
+  id              String       @id @default(cuid())
+  title           String
+  centralIdea     String       @map("central_idea")
+  targetAudience  String       @map("target_audience")
+  vertical        UserVertical
+  authorId        String
+  author          User         @relation("IdeaAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  reason          String?
+  launchLocation  String?      @map("launch_location")
+  status          IdeaStatus   @default(PENDING_REVIEW)
+  
+  aiSummary       String?      @map("ai_summary")
+  aiStrengths     String?      @map("ai_strengths")
+  aiWeaknesses    String?      @map("ai_weaknesses")
+  aiDevelopment   String?      @map("ai_development")
+  pdfUrl          String?      @map("pdf_url")
+
+  feedbacks       Feedback[]
+  aiDeletion      AIDeletion?
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@map("ideas")
+}
+
+model Feedback {
+  id                  String       @id @default(cuid())
+  content             String
+  type                FeedbackType
+  negativeReason      String?      @map("negative_reason")
+  marketingSuggestions String[]    @map("marketing_suggestions")
+  ideaId              String
+  idea                Idea         @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  authorId            String
+  author              User         @relation("FeedbackAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  @@unique([ideaId, authorId])
+  @@map("feedbacks")
+}
+
+model AIDeletion {
+  id            String           @id @default(cuid())
+  ideaId        String           @unique
+  idea          Idea             @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  requesterId   String
+  requester     User             @relation("AIDeletionRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  reason        String
+  status        AIDeletionStatus @default(PENDING)
+  reviewedById  String?
+  reviewedBy    User?            @relation(fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt    DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@map("ai_deletions")
+}
