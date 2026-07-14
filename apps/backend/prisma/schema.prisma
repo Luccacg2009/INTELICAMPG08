@@ -59,10 +59,11 @@ model User {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
-  ideas         Idea[]       @relation("IdeaAuthor")
-  feedbacks     Feedback[]   @relation("FeedbackAuthor")
-  aiDeletions   AIDeletion[] @relation("AIDeletionRequester")
-  refreshTokens RefreshToken[]
+  ideas              Idea[]       @relation("IdeaAuthor")
+  feedbacks          Feedback[]   @relation("FeedbackAuthor")
+  aiDeletions        AIDeletion[] @relation("AIDeletionRequester")
+  reviewedAiDeletions AIDeletion[] @relation("AIDeletionReviewer")
+  refreshTokens      RefreshToken[]
 
   @@map("users")
 }
@@ -131,7 +132,7 @@ model AIDeletion {
   reason        String
   status        AIDeletionStatus @default(PENDING)
   reviewedById  String?
-  reviewedBy    User?            @relation(fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedBy    User?            @relation("AIDeletionReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
   reviewedAt    DateTime?
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt

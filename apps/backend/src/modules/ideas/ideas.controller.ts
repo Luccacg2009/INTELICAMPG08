@@ -1,13 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Req, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Req, Res, ForbiddenException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiConsumes } from '@nestjs/swagger';
 import { Response } from 'express';
 import { IdeasService } from './ideas.service';
-import { CreateIdeaDto, UpdateIdeaDto, ReviewIdeaDto, AISummaryDto, RequestAIDeletionDto, IdeaListQueryDto } from './dto/idea.dto';
+import { CreateIdeaDto, UpdateIdeaDto, ReviewIdeaDto, RequestAIDeletionDto, IdeaListQueryDto } from './dto/idea.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { User, UserRole } from '../users/user.entity';
+import { User } from '../users/user.entity';
+import { UserRole } from '../../common/enums/user.enums';
+import { UserVertical } from '../../common/enums/user.enums';
 
 @ApiTags('ideas')
 @ApiBearerAuth()
@@ -128,6 +130,3 @@ export class IdeasController {
     await this.ideasService.delete(id, user.id, user.role);
   }
 }
-
-import { ForbiddenException } from '@nestjs/common';
-import { UserVertical } from '../../common/enums/user.enums';

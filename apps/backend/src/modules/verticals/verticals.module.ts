@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { VerticalConfig } from './vertical-config.entity';
-import { CompanyValue } from './company-value.entity';
+import { VerticalConfig, CompanyValue } from './vertical-config.entity';
 import { VerticalsController } from './verticals.controller';
 import { VerticalsService } from './verticals.service';
 

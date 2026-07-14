@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, NotFoundException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto, UserResponseDto } from './dto/users.dto';
@@ -7,7 +7,9 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User } from './user.entity';
-import { UserRole } from '../../common/enums/user.enums';
+import { UserRole, UserVertical } from '../../common/enums/user.enums';
+import * as bcrypt from 'bcryptjs';
+import { RegisterDto } from '../auth/dto/auth.dto';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -21,7 +23,14 @@ export class UsersController {
   @ApiOperation({ summary: 'Criar novo usuário (apenas admin)' })
   @ApiResponse({ status: 201, type: UserResponseDto })
   async create(@Body() dto: CreateUserDto): Promise<UserResponseDto> {
-    const user = await this.usersService.create(dto);
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+    const user = await this.usersService.create({
+      email: dto.email,
+      passwordHash,
+      name: dto.name,
+      role: dto.role || UserRole.PARTICIPANT,
+      vertical: dto.vertical || UserVertical.MARKETING,
+    } as RegisterDto & { passwordHash: string });
     return this.toResponse(user);
   }
 
@@ -98,5 +107,3 @@ export class UsersController {
     };
   }
 }
-
-import { NotFoundException } from '@nestjs/common';

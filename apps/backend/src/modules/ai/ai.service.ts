@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OpenAI } from 'openai';
+import { VerticalsService } from '../verticals/verticals.service';
 
 export interface IdeaSummary {
   summary: string;
@@ -14,7 +15,10 @@ export class AiService {
   private openai: OpenAI;
   private promptTemplate: string;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private verticalsService: VerticalsService,
+  ) {
     this.openai = new OpenAI({
       apiKey: this.configService.get('OPENAI_API_KEY'),
     });
@@ -30,7 +34,7 @@ DADOS DA IDEIA:
 - Motivação: {motivation}
 - Local de lançamento: {launchLocation}
 - Autor: {authorName}
-- Valores da empresa: Inovação, Sustentabilidade, Ética, Foco no Cliente, Excelência
+- Valores da empresa: {companyValues}
 
 INSTRUÇÕES:
 1. Use vocabulário formal e corporativo
@@ -53,6 +57,11 @@ RETORNO ESPERADO:
 `;
   }
 
+  private async getCompanyValues(): Promise<string> {
+    const values = await this.verticalsService.getCompanyValues();
+    return values.map(v => v.name).join(', ');
+  }
+
   async generateSummary(ideaData: {
     title: string;
     vertical: string;
@@ -62,6 +71,7 @@ RETORNO ESPERADO:
     launchLocation?: string;
     authorName: string;
   }): Promise<IdeaSummary> {
+    const companyValues = await this.getCompanyValues();
     const prompt = this.promptTemplate
       .replace('{title}', ideaData.title)
       .replace('{vertical}', ideaData.vertical)
@@ -69,7 +79,8 @@ RETORNO ESPERADO:
       .replace('{targetAudience}', ideaData.targetAudience)
       .replace('{motivation}', ideaData.motivation || 'Não informado')
       .replace('{launchLocation}', ideaData.launchLocation || 'Não informado')
-      .replace('{authorName}', ideaData.authorName);
+      .replace('{authorName}', ideaData.authorName)
+      .replace('{companyValues}', companyValues);
 
     try {
       const completion = await this.openai.chat.completions.create({
@@ -107,9 +118,10 @@ RETORNO ESPERADO:
   }
 
   async checkCompanyValues(ideaData: any): Promise<{ violates: boolean; reason?: string }> {
+    const companyValues = await this.getCompanyValues();
     const prompt = `
 Verifique se a seguinte ideia fere algum dos valores da empresa azul:
-Valores: Inovação, Sustentabilidade, Ética, Foco no Cliente, Excelência
+Valores: ${companyValues}
 
 Ideia: ${ideaData.title}
 Descrição: ${ideaData.description}

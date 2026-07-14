@@ -41,7 +41,7 @@ export class AuthService {
     const tokens = await this.generateTokens(user);
     await this.usersService.updateRefreshToken(user.id, tokens.refreshToken);
 
-    const { passwordHash: _, refreshToken: __, ...userWithoutSecrets } = user;
+    const { passwordHash: _, refreshTokens: __, ...userWithoutSecrets } = user;
     return { user: userWithoutSecrets, tokens };
   }
 
@@ -60,19 +60,19 @@ export class AuthService {
     await this.usersService.updateRefreshToken(user.id, tokens.refreshToken);
     await this.usersService.updateLastLogin(user.id);
 
-    const { passwordHash: _, refreshToken: __, ...userWithoutSecrets } = user;
+    const { passwordHash: _, refreshTokens: __, ...userWithoutSecrets } = user;
     return { user: userWithoutSecrets, tokens };
   }
 
   async refreshTokens(userId: string, refreshToken: string): Promise<Tokens> {
-    const user = await this.usersService.findById(userId);
-    if (!user || !user.refreshToken) {
+    const isValid = await this.usersService.validateRefreshToken(userId, refreshToken);
+    if (!isValid) {
       throw new UnauthorizedException('Refresh token inválido');
     }
 
-    const isTokenValid = await bcrypt.compare(refreshToken, user.refreshToken);
-    if (!isTokenValid) {
-      throw new UnauthorizedException('Refresh token inválido');
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('Usuário não encontrado');
     }
 
     const tokens = await this.generateTokens(user);

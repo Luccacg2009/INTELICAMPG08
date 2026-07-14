@@ -1,6 +1,8 @@
 export enum UserRole {
   ADMIN = 'ADMIN',
   ANALYST = 'ANALYST',
+  PARTICIPANT = 'PARTICIPANT',
+  VERTICAL_LEAD = 'VERTICAL_LEAD',
 }
 
 export enum UserVertical {
@@ -18,11 +20,14 @@ export enum UserVertical {
 
 export enum IdeaStatus {
   PENDING_REVIEW = 'PENDING_REVIEW',
+  UNDER_REVIEW = 'UNDER_REVIEW',
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
   IN_DEVELOPMENT = 'IN_DEVELOPMENT',
   LAUNCHED = 'LAUNCHED',
   ARCHIVED = 'ARCHIVED',
+  AI_DELETION_REQUESTED = 'AI_DELETION_REQUESTED',
+  DELETED_BY_AI = 'DELETED_BY_AI',
 }
 
 export enum FeedbackType {
@@ -53,4 +58,6 @@ export const VERTICAL_LABELS: Record<UserVertical, string> = {
 export const ROLE_LABELS: Record<UserRole, string> = {
   [UserRole.ADMIN]: 'Administrador',
   [UserRole.ANALYST]: 'Analista',
+  [UserRole.PARTICIPANT]: 'Participante',
+  [UserRole.VERTICAL_LEAD]: 'Líder de Vertical',
 };

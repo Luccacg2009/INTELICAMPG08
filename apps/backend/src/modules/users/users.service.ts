@@ -5,6 +5,7 @@ import * as bcrypt from 'bcryptjs';
 import { User } from './user.entity';
 import { RefreshToken } from './refresh-token.entity';
 import { RegisterDto } from '../auth/dto/auth.dto';
+import { UserVertical, UserRole } from '../../common/enums/user.enums';
 
 @Injectable()
 export class UsersService {
@@ -16,13 +17,14 @@ export class UsersService {
   ) {}
 
   async create(dto: RegisterDto & { passwordHash: string }): Promise<User> {
-    const user = this.userRepository.create({
+    const userData: Partial<User> = {
       email: dto.email,
       passwordHash: dto.passwordHash,
       name: dto.name,
-      role: dto.role || 'PARTICIPANT',
-      vertical: dto.vertical || 'MARKETING',
-    });
+      role: (dto.role || UserRole.PARTICIPANT) as UserRole,
+      vertical: (dto.vertical || UserVertical.MARKETING) as UserVertical,
+    };
+    const user = this.userRepository.create(userData);
     return this.userRepository.save(user);
   }
 
@@ -38,7 +40,7 @@ export class UsersService {
     return this.userRepository.find({ order: { createdAt: 'DESC' } });
   }
 
-  async findByVertical(vertical: string): Promise<User[]> {
+  async findByVertical(vertical: UserVertical): Promise<User[]> {
     return this.userRepository.find({ where: { vertical }, order: { name: 'ASC' } });
   }
 
@@ -77,5 +79,9 @@ export class UsersService {
     const tokenRecord = await this.refreshTokenRepository.findOne({ where: { userId } });
     if (!tokenRecord) return false;
     return bcrypt.compare(refreshToken, tokenRecord.token);
+  }
+
+  async getAnalysts(): Promise<User[]> {
+    return this.userRepository.find({ where: { role: UserRole.ANALYST }, order: { name: 'ASC' } });
   }
 }

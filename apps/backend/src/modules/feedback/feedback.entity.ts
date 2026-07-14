@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany, Unique } from 'typeorm';
-import { User } from './user.entity';
+import { User } from '../users/user.entity';
 import { Idea } from '../ideas/idea.entity';
 
 @Entity('feedbacks')

@@ -1,6 +1,6 @@
 import { IsString, IsOptional, IsEnum, MinLength, MaxLength, IsIn } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IdeaStatus, UserVertical } from '../../common/enums/user.enums';
+import { IdeaStatus, UserVertical } from '../../../common/enums/user.enums';
 
 export class CreateIdeaDto {
   @ApiProperty({ example: 'App de Delivery Sustentável' })
@@ -14,7 +14,7 @@ export class CreateIdeaDto {
   @MinLength(50)
   description: string;
 
-  @ApiProperty({ enum: UserVertical, example: UserVertical.BUSINESS })
+  @ApiProperty({ enum: UserVertical, example: UserVertical.MARKETING })
   @IsEnum(UserVertical)
   vertical: UserVertical;
 

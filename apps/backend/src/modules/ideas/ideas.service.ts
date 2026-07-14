@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, Between } from 'typeorm';
-import { Idea, Feedback, AIDeletion, IdeaStatus } from './idea.entity';
-import { User, UserRole } from '../users/user.entity';
-import { CreateIdeaDto, UpdateIdeaDto, ReviewIdeaDto, AISummaryDto, RequestAIDeletionDto, IdeaListQueryDto } from './dto/idea.dto';
+import { Idea, Feedback, AIDeletion } from './idea.entity';
+import { User } from '../users/user.entity';
+import { UserRole, IdeaStatus, UserVertical } from '../../common/enums/user.enums';
+import { CreateIdeaDto, UpdateIdeaDto, ReviewIdeaDto, RequestAIDeletionDto, IdeaListQueryDto } from './dto/idea.dto';
 import { AiService } from '../ai/ai.service';
 import { PdfService } from '../pdf/pdf.service';
 
@@ -46,8 +47,8 @@ export class IdeasService {
       qb.andWhere('idea.authorId = :authorId', { authorId: query.authorId });
     }
 
-    const page = query.page || 1;
-    const limit = query.limit || 10;
+    const page = parseInt(query.page as string) || 1;
+    const limit = parseInt(query.limit as string) || 10;
     qb.skip((page - 1) * limit).take(limit);
 
     const [ideas, total] = await qb.getManyAndCount();
@@ -67,6 +68,14 @@ export class IdeasService {
     return this.ideaRepository.find({
       where: { authorId },
       relations: ['feedbacks'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async findByVertical(vertical: UserVertical): Promise<Idea[]> {
+    return this.ideaRepository.find({
+      where: { vertical },
+      relations: ['author'],
       order: { createdAt: 'DESC' },
     });
   }

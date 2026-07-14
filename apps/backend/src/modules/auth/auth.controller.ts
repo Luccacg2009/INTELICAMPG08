@@ -60,7 +60,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Obter usuário logado' })
   @ApiBearerAuth()
   async me(@CurrentUser() user: User) {
-    const { passwordHash, refreshToken, ...userWithoutSecrets } = user;
+    const { passwordHash, refreshTokens, ...userWithoutSecrets } = user;
     return userWithoutSecrets;
   }
 

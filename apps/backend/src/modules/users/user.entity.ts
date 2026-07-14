@@ -1,5 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 import { UserRole, UserVertical } from '../../common/enums/user.enums';
+import { RefreshToken } from './refresh-token.entity';
+import { Idea } from '../ideas/idea.entity';
+import { Feedback } from '../feedback/feedback.entity';
+import { AIDeletion } from '../ai/ai-deletion.entity';
 
 @Entity('users')
 @Index(['email'], { unique: true })
@@ -38,29 +42,15 @@ export class User {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
+  @OneToMany(() => Idea, idea => idea.author)
+  ideas: Idea[];
+
+  @OneToMany(() => Feedback, feedback => feedback.author)
+  feedbacks: Feedback[];
+
+  @OneToMany(() => AIDeletion, deletion => deletion.requester)
+  aiDeletions: AIDeletion[];
+
   @OneToMany(() => RefreshToken, token => token.user)
   refreshTokens: RefreshToken[];
-}
-
-@Entity('refresh_tokens')
-@Index(['userId'])
-export class RefreshToken {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column()
-  token: string;
-
-  @Column({ name: 'user_id' })
-  userId: string;
-
-  @ManyToOne(() => User, user => user.refreshTokens, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
-  user: User;
-
-  @Column({ name: 'expires_at' })
-  expiresAt: Date;
-
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
 }
