@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, Edit, Trash2, AlertCircle, CheckCircle, XCircle, Loader2, FileText, MessageSquare, Zap } from 'lucide-react';
+import { ArrowLeft, Download, AlertCircle, CheckCircle, XCircle, Loader2, MessageSquare, Zap } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
-import { Modal, ConfirmDialog } from '../../components/ui/Modal';
+import { Modal } from '../../components/ui/Modal';
 import { api } from '../../services/api';
-import { Idea, ReviewIdeaDto, CreateFeedbackDto, RequestAIDeletionDto } from '../../types/api';
+import { Idea, ReviewIdeaDto, CreateFeedbackDto, RequestAIDeletionDto } from '../../types';
 import toast from 'react-hot-toast';
 
 export function IdeaDetail() {

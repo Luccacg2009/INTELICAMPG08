@@ -30,8 +30,8 @@ export class IdeasController {
   @Roles(UserRole.ANALYST, UserRole.ADMIN)
   @ApiOperation({ summary: 'Listar todas as ideias (analistas e admins)' })
   @ApiResponse({ status: 200 })
-  async findAll(@Query() query: IdeaListQueryDto) {
-    return this.ideasService.findAll(query);
+  async findAll(@Query() query: IdeaListQueryDto, @CurrentUser() user: User) {
+    return this.ideasService.findAll(query, user.role, user.id);
   }
 
   @Get('my-ideas')

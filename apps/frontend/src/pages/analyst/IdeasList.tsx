@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Search, Filter, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
+import { Search, ChevronLeft, ChevronRight, Loader2, Lightbulb } from 'lucide-react';
+import { Card, CardContent } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
 import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
-import { Idea, IdeaListQuery } from '../../types/api';
+import { Idea, IdeaListQuery } from '../../types';
 
 export function IdeasList() {
   const [ideas, setIdeas] = useState<Idea[]>([]);

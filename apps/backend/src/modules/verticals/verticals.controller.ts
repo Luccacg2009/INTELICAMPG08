@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Query } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { VerticalsService } from './verticals.service';
-import { VerticalConfig, CompanyValue } from './vertical-config.entity';
+import { VerticalConfig, CompanyValue, VerticalBenchmark, MarketBenchmark } from './vertical-config.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -68,5 +68,65 @@ export class VerticalsController {
   @ApiResponse({ status: 204 })
   async deleteValue(@Param('id') id: string) {
     await this.verticalsService.deleteValue(id);
+  }
+
+  // Benchmark endpoints
+  @Get('benchmarks')
+  @Roles(UserRole.ADMIN, UserRole.VERTICAL_LEAD, UserRole.ANALYST)
+  @ApiOperation({ summary: 'Obter benchmark histórico da vertical' })
+  @ApiQuery({ name: 'vertical', required: true, enum: UserVertical })
+  @ApiResponse({ status: 200, type: VerticalBenchmark })
+  async getBenchmark(@Query('vertical') vertical: UserVertical) {
+    return this.verticalsService.getBenchmark(vertical);
+  }
+
+  @Post('benchmarks')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Criar benchmark histórico (apenas Admin)' })
+  @ApiResponse({ status: 201, type: VerticalBenchmark })
+  async createBenchmark(@Body() data: Partial<VerticalBenchmark>) {
+    return this.verticalsService.createBenchmark(data);
+  }
+
+  @Put('benchmarks/:id')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Atualizar benchmark histórico (apenas Admin)' })
+  @ApiResponse({ status: 200, type: VerticalBenchmark })
+  async updateBenchmark(@Param('id') id: string, @Body() data: Partial<VerticalBenchmark>) {
+    return this.verticalsService.updateBenchmark(id, data);
+  }
+
+  // Market benchmark endpoints
+  @Get('market-benchmarks/all')
+  @Roles(UserRole.ADMIN, UserRole.VERTICAL_LEAD, UserRole.ANALYST)
+  @ApiOperation({ summary: 'Listar benchmarks de mercado/concorrentes' })
+  @ApiQuery({ name: 'vertical', required: true, enum: UserVertical })
+  @ApiResponse({ status: 200, type: [MarketBenchmark] })
+  async getMarketBenchmarks(@Query('vertical') vertical: UserVertical) {
+    return this.verticalsService.getMarketBenchmarks(vertical);
+  }
+
+  @Post('market-benchmarks')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Criar benchmark de mercado (apenas Admin)' })
+  @ApiResponse({ status: 201, type: MarketBenchmark })
+  async createMarketBenchmark(@Body() data: Partial<MarketBenchmark>) {
+    return this.verticalsService.createMarketBenchmark(data);
+  }
+
+  @Put('market-benchmarks/:id')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Atualizar benchmark de mercado (apenas Admin)' })
+  @ApiResponse({ status: 200, type: MarketBenchmark })
+  async updateMarketBenchmark(@Param('id') id: string, @Body() data: Partial<MarketBenchmark>) {
+    return this.verticalsService.updateMarketBenchmark(id, data);
+  }
+
+  @Delete('market-benchmarks/:id')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Deletar benchmark de mercado (apenas Admin)' })
+  @ApiResponse({ status: 204 })
+  async deleteMarketBenchmark(@Param('id') id: string) {
+    await this.verticalsService.deleteMarketBenchmark(id);
   }
 }

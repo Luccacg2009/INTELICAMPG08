@@ -8,6 +8,10 @@ export interface IdeaSummary {
   strengths: string;
   weaknesses: string;
   developmentWays: string;
+  priorityScore: number;
+  priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  priorityColor: 'GREEN' | 'YELLOW' | 'RED';
+  priorityReason: string;
 }
 
 @Injectable()
@@ -24,7 +28,7 @@ export class AiService {
     });
 
     this.promptTemplate = `
-Você é um analista sênior de produtos da empresa azul. Sua tarefa é criar um resumo executivo formal e estruturado da ideia de produto abaixo.
+Você é um analista sênior de produtos da empresa azul. Sua tarefa é criar um resumo executivo formal e estruturado da ideia de produto abaixo E classificar sua prioridade.
 
 DADOS DA IDEIA:
 - Título: {title}
@@ -35,15 +39,23 @@ DADOS DA IDEIA:
 - Local de lançamento: {launchLocation}
 - Autor: {authorName}
 - Valores da empresa: {companyValues}
+{benchmarkContext}
 
 INSTRUÇÕES:
 1. Use vocabulário formal e corporativo
 2. NÃO crie um produto do zero - apenas analise a ideia apresentada
 3. Identifique pontos fortes, pontos fracos e formas de desenvolvimento
 4. Verifique se a ideia fere os valores da empresa
-5. Retorne APENAS um JSON válido com os campos: summary, strengths, weaknesses, developmentWays, violatesValues (boolean), violationReason (string, opcional)
-6. O campo summary deve ser um resumo detalhado de 3-5 parágrafos
-7. Os campos strengths, weaknesses, developmentWays devem ser listas em formato texto (bullet points)
+5. CONSIDERE OS DADOS HISTÓRICOS E BENCHMARKS da vertical para embasar sua análise
+6. CLASSIFIQUE A PRIORIDADE da ideia (0-100):
+   - HIGH (VERDE, 70-100): Ideias excepcionais, alto impacto, alinhamento estratégico forte, viabilidade clara
+   - MEDIUM (AMARELO, 40-69): Ideias boas, potencial moderado, alguns pontos a melhorar
+   - LOW (VERMELHO, 0-39): Ideias com problemas significativos, baixo alinhamento, baixa viabilidade
+7. Retorne APENAS um JSON válido com os campos: summary, strengths, weaknesses, developmentWays, violatesValues (boolean), violationReason (string, opcional), priorityScore (number 0-100), priority (HIGH/MEDIUM/LOW), priorityColor (GREEN/YELLOW/RED), priorityReason (string)
+8. O campo summary deve ser um resumo detalhado de 3-5 parágrafos
+9. Os campos strengths, weaknesses, developmentWays devem ser listas em formato texto (bullet points)
+10. priorityReason deve explicar brevemente por que recebeu essa classificação
+11. Se houver dados históricos, mencione como a ideia se compara (ex: "Acima da média histórica de X%", "Taxa de sucesso histórica da vertical é Y%")
 
 RETORNO ESPERADO:
 {
@@ -52,7 +64,11 @@ RETORNO ESPERADO:
   "weaknesses": "string", 
   "developmentWays": "string",
   "violatesValues": false,
-  "violationReason": "string ou null"
+  "violationReason": "string ou null",
+  "priorityScore": 85,
+  "priority": "HIGH",
+  "priorityColor": "GREEN",
+  "priorityReason": "Alto impacto estratégico, forte alinhamento com valores da empresa, viabilidade técnica clara, acima da média histórica de 65% de sucesso"
 }
 `;
   }
@@ -72,6 +88,7 @@ RETORNO ESPERADO:
     authorName: string;
   }): Promise<IdeaSummary> {
     const companyValues = await this.getCompanyValues();
+    const benchmarkContext = await this.verticalsService.getBenchmarkContext(ideaData.vertical as any);
     const prompt = this.promptTemplate
       .replace('{title}', ideaData.title)
       .replace('{vertical}', ideaData.vertical)
@@ -80,7 +97,8 @@ RETORNO ESPERADO:
       .replace('{motivation}', ideaData.motivation || 'Não informado')
       .replace('{launchLocation}', ideaData.launchLocation || 'Não informado')
       .replace('{authorName}', ideaData.authorName)
-      .replace('{companyValues}', companyValues);
+      .replace('{companyValues}', companyValues)
+      .replace('{benchmarkContext}', benchmarkContext);
 
     try {
       const completion = await this.openai.chat.completions.create({
@@ -108,6 +126,10 @@ RETORNO ESPERADO:
         strengths: parsed.strengths,
         weaknesses: parsed.weaknesses,
         developmentWays: parsed.developmentWays,
+        priorityScore: parsed.priorityScore || 50,
+        priority: parsed.priority || 'MEDIUM',
+        priorityColor: parsed.priorityColor || 'YELLOW',
+        priorityReason: parsed.priorityReason || 'Classificação padrão',
       };
     } catch (error) {
       if (error instanceof SyntaxError) {

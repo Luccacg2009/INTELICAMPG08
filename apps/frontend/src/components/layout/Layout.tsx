@@ -1,7 +1,7 @@
 import { ReactNode, useState } from 'react';
-import { Link, useLocation, NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { Menu, X, ChevronDown, User, LogOut, LayoutDashboard, Lightbulb, MessageSquare, Settings, BarChart2, Users, FileText } from 'lucide-react';
-import { useAuthStore } from '../../store/authStore';
+import { useAuthStore } from '../../store/auth';
 
 interface LayoutProps {
   children: ReactNode;
@@ -21,7 +21,6 @@ const adminNavigation = [
 ];
 
 export function Layout({ children }: LayoutProps) {
-  const location = useLocation();
   const { user, logout } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);

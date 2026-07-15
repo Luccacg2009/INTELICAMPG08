@@ -1,4 +1,4 @@
-import { Users, Lightbulb, MessageSquare, TrendingUp, Clock, CheckCircle, XCircle, AlertCircle, ArrowRight } from 'lucide-react';
+import { Lightbulb, MessageSquare, Clock, CheckCircle, XCircle, ArrowRight } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth';
 import { api } from '../../services/api';
 import { useEffect, useState } from 'react';
-import { Idea } from '../../types/api';
+import { Idea } from '../../types';
 
 export function Dashboard() {
   const { user } = useAuthStore();

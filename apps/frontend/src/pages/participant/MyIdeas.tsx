@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Lightbulb, Loader2, Edit, Trash2, Eye, Clock, CheckCircle, XCircle } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
+import { Lightbulb, Loader2, Edit, Trash2, Eye, Zap } from 'lucide-react';
+import { Card, CardContent } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
-import { Modal, ConfirmDialog } from '../../components/ui/Modal';
+import { Modal } from '../../components/ui/Modal';
 import { api } from '../../services/api';
-import { Idea } from '../../types/api';
+import { Idea } from '../../types';
 import toast from 'react-hot-toast';
 
 export function MyIdeas() {

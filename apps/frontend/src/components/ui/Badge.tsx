@@ -42,10 +42,9 @@ Badge.displayName = 'Badge';
 
 interface StatusBadgeProps {
   status: string;
-  type?: 'idea' | 'feedback' | 'ai-deletion';
 }
 
-export const StatusBadge = ({ status, type = 'idea' }: StatusBadgeProps) => {
+export const StatusBadge = ({ status }: StatusBadgeProps) => {
   const statusConfig: Record<string, { label: string; variant: BadgeProps['variant'] }> = {
     // Idea statuses
     PENDING_REVIEW: { label: 'Aguardando Análise', variant: 'warning' },

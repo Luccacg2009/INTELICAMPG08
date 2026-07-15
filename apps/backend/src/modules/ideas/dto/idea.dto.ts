@@ -1,6 +1,7 @@
 import { IsString, IsOptional, IsEnum, MinLength, MaxLength, IsIn } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IdeaStatus, UserVertical } from '../../../common/enums/user.enums';
+import { IdeaPriority, IdeaPriorityColor } from '../idea.entity';
 
 export class CreateIdeaDto {
   @ApiProperty({ example: 'App de Delivery Sustentável' })
@@ -160,6 +161,15 @@ export class IdeaResponseDto {
 
   @ApiProperty({ enum: IdeaStatus })
   status: IdeaStatus;
+
+  @ApiProperty({ enum: IdeaPriority, required: false })
+  priority?: IdeaPriority;
+
+  @ApiProperty({ enum: IdeaPriorityColor, required: false })
+  priorityColor?: IdeaPriorityColor;
+
+  @ApiProperty({ required: false })
+  priorityScore?: number;
 
   @ApiProperty()
   authorId: string;

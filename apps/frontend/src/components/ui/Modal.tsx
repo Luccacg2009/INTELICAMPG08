@@ -1,4 +1,4 @@
-import { Fragment, ReactNode } from 'react';
+import { ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
@@ -11,7 +11,6 @@ interface ModalProps {
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   showCloseButton?: boolean;
   closeOnOverlayClick?: boolean;
-  closeOnEscape?: boolean;
 }
 
 export function Modal({
@@ -23,7 +22,6 @@ export function Modal({
   size = 'md',
   showCloseButton = true,
   closeOnOverlayClick = true,
-  closeOnEscape = true,
 }: ModalProps) {
   if (!isOpen) return null;
 
@@ -33,10 +31,6 @@ export function Modal({
     lg: 'max-w-lg',
     xl: 'max-w-xl',
     full: 'max-w-4xl',
-  };
-
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape' && closeOnEscape) onClose();
   };
 
   const content = (

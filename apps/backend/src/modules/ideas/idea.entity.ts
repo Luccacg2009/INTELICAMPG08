@@ -2,10 +2,23 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { User } from '../users/user.entity';
 import { IdeaStatus, UserVertical } from '../../common/enums/user.enums';
 
+export enum IdeaPriority {
+  HIGH = 'HIGH',
+  MEDIUM = 'MEDIUM',
+  LOW = 'LOW',
+}
+
+export enum IdeaPriorityColor {
+  GREEN = 'GREEN',
+  YELLOW = 'YELLOW',
+  RED = 'RED',
+}
+
 @Entity('ideas')
 @Index(['status'])
 @Index(['vertical'])
 @Index(['authorId'])
+@Index(['priority'])
 export class Idea {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -30,6 +43,15 @@ export class Idea {
 
   @Column({ type: 'enum', enum: IdeaStatus, default: IdeaStatus.PENDING_REVIEW })
   status: IdeaStatus;
+
+  @Column({ type: 'enum', enum: IdeaPriority, nullable: true, name: 'priority' })
+  priority: IdeaPriority;
+
+  @Column({ type: 'enum', enum: IdeaPriorityColor, nullable: true, name: 'priority_color' })
+  priorityColor: IdeaPriorityColor;
+
+  @Column('int', { nullable: true, name: 'priority_score' })
+  priorityScore: number;
 
   @Column('text', { nullable: true })
   strengths: string;

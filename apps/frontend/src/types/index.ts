@@ -10,6 +10,9 @@ export interface User {
   updatedAt: string;
 }
 
+export type IdeaPriority = 'HIGH' | 'MEDIUM' | 'LOW';
+export type IdeaPriorityColor = 'GREEN' | 'YELLOW' | 'RED';
+
 export interface Idea {
   id: string;
   title: string;
@@ -19,6 +22,9 @@ export interface Idea {
   motivation?: string;
   launchLocation?: string;
   status: 'PENDING_REVIEW' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'IN_DEVELOPMENT' | 'LAUNCHED' | 'ARCHIVED' | 'AI_DELETION_REQUESTED' | 'DELETED_BY_AI';
+  priority?: IdeaPriority;
+  priorityColor?: IdeaPriorityColor;
+  priorityScore?: number;
   strengths?: string;
   weaknesses?: string;
   developmentWays?: string;
@@ -92,6 +98,7 @@ export interface IdeaListQuery {
   status?: string;
   vertical?: string;
   authorId?: string;
+  search?: string;
   page?: number;
   limit?: number;
 }

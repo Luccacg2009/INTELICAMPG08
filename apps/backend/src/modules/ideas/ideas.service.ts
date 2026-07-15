@@ -1,11 +1,11 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, Between } from 'typeorm';
-import { Idea, Feedback, AIDeletion } from './idea.entity';
+import { Idea, Feedback, AIDeletion, IdeaPriority, IdeaPriorityColor } from './idea.entity';
 import { User } from '../users/user.entity';
 import { UserRole, IdeaStatus, UserVertical } from '../../common/enums/user.enums';
 import { CreateIdeaDto, UpdateIdeaDto, ReviewIdeaDto, RequestAIDeletionDto, IdeaListQueryDto } from './dto/idea.dto';
-import { AiService } from '../ai/ai.service';
+import { AiService, IdeaSummary } from '../ai/ai.service';
 import { PdfService } from '../pdf/pdf.service';
 
 @Injectable()
@@ -17,9 +17,22 @@ export class IdeasService {
     private feedbackRepository: Repository<Feedback>,
     @InjectRepository(AIDeletion)
     private aiDeletionRepository: Repository<AIDeletion>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     private aiService: AiService,
     private pdfService: PdfService,
   ) {}
+
+  private calculatePriority(summary: IdeaSummary): { priority: IdeaPriority; priorityColor: IdeaPriorityColor; priorityScore: number } {
+    const score = summary.priorityScore;
+    if (score >= 70) {
+      return { priority: IdeaPriority.HIGH, priorityColor: IdeaPriorityColor.GREEN, priorityScore: score };
+    } else if (score >= 40) {
+      return { priority: IdeaPriority.MEDIUM, priorityColor: IdeaPriorityColor.YELLOW, priorityScore: score };
+    } else {
+      return { priority: IdeaPriority.LOW, priorityColor: IdeaPriorityColor.RED, priorityScore: score };
+    }
+  }
 
   async create(dto: CreateIdeaDto, authorId: string): Promise<Idea> {
     const idea = this.ideaRepository.create({
@@ -30,7 +43,7 @@ export class IdeasService {
     return this.ideaRepository.save(idea);
   }
 
-  async findAll(query: IdeaListQueryDto): Promise<{ ideas: Idea[]; total: number }> {
+  async findAll(query: IdeaListQueryDto, userRole?: UserRole, userId?: string): Promise<{ ideas: Idea[]; total: number }> {
     const qb = this.ideaRepository
       .createQueryBuilder('idea')
       .leftJoinAndSelect('idea.author', 'author')
@@ -45,6 +58,13 @@ export class IdeasService {
     }
     if (query.authorId) {
       qb.andWhere('idea.authorId = :authorId', { authorId: query.authorId });
+    }
+
+    // Para analistas e admins, ordenar por prioridade (maior primeiro) e depois por data
+    if (userRole === UserRole.ANALYST || userRole === UserRole.ADMIN) {
+      qb.addOrderBy('idea.priorityScore', 'DESC', 'NULLS LAST');
+      qb.addOrderBy('idea.priority', 'DESC');
+      qb.addOrderBy('idea.createdAt', 'ASC');
     }
 
     const page = parseInt(query.page as string) || 1;
@@ -124,11 +144,16 @@ export class IdeasService {
         authorName: idea.author.name,
       });
 
+      const priorityInfo = this.calculatePriority(summary);
+
       idea.aiSummary = summary.summary;
       idea.aiStrengths = summary.strengths;
       idea.aiWeaknesses = summary.weaknesses;
       idea.aiDevelopment = summary.developmentWays;
       idea.aiGeneratedAt = new Date();
+      idea.priority = priorityInfo.priority;
+      idea.priorityColor = priorityInfo.priorityColor;
+      idea.priorityScore = priorityInfo.priorityScore;
 
       await this.ideaRepository.save(idea);
     } catch (error) {
