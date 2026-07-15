@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Menu, X, ChevronDown, User, LogOut, LayoutDashboard, Lightbulb, MessageSquare, Settings, BarChart2, Users, FileText } from 'lucide-react';
+import { Menu, X, ChevronDown, User, LogOut, LayoutDashboard, Lightbulb, MessageSquare, Settings, BarChart2, Users, FileText, UserCog } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 
 interface LayoutProps {
@@ -15,7 +15,9 @@ const navigation = [
 ];
 
 const adminNavigation = [
+  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard, roles: ['ADMIN'] },
   { name: 'Usuários', href: '/admin/users', icon: Users, roles: ['ADMIN'] },
+  { name: 'Todas as Ideias', href: '/admin/ideas', icon: FileText, roles: ['ADMIN'] },
   { name: 'Relatórios', href: '/admin/reports', icon: BarChart2, roles: ['ADMIN'] },
   { name: 'Configurações', href: '/admin/settings', icon: Settings, roles: ['ADMIN'] },
 ];
@@ -141,6 +143,14 @@ export function Layout({ children }: LayoutProps) {
 
             {userMenuOpen && (
               <div className="mt-3 rounded-lg bg-white border border-gray-200 shadow-lg py-1">
+                <Link
+                  to="/profile"
+                  onClick={() => setUserMenuOpen(false)}
+                  className="flex w-full items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  <UserCog className="w-4 h-4" />
+                  Meu Perfil
+                </Link>
                 <button
                   onClick={() => {
                     logout();

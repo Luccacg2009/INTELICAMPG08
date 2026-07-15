@@ -2,16 +2,21 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'ADMIN' | 'ANALYST' | 'PARTICIPANT';
-  vertical: string | null;
+  role: UserRole;
+  vertical: UserVertical | null;
   avatarUrl: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
+export type UserRole = 'ADMIN' | 'ANALYST' | 'PARTICIPANT';
+export type UserVertical = 'MARKETING' | 'PRODUCT' | 'SALES' | 'ENGINEERING' | 'DESIGN' | 'OPERATIONS' | 'FINANCE' | 'HR' | 'LEGAL' | 'OTHER';
+
 export type IdeaPriority = 'HIGH' | 'MEDIUM' | 'LOW';
 export type IdeaPriorityColor = 'GREEN' | 'YELLOW' | 'RED';
+
+export type IdeaStatus = 'PENDING_REVIEW' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'IN_DEVELOPMENT' | 'LAUNCHED' | 'ARCHIVED' | 'AI_DELETION_REQUESTED' | 'DELETED_BY_AI';
 
 export interface Idea {
   id: string;
@@ -21,7 +26,7 @@ export interface Idea {
   targetAudience: string;
   motivation?: string;
   launchLocation?: string;
-  status: 'PENDING_REVIEW' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'IN_DEVELOPMENT' | 'LAUNCHED' | 'ARCHIVED' | 'AI_DELETION_REQUESTED' | 'DELETED_BY_AI';
+  status: IdeaStatus;
   priority?: IdeaPriority;
   priorityColor?: IdeaPriorityColor;
   priorityScore?: number;
@@ -70,6 +75,35 @@ export interface AIDeletion {
   updatedAt: string;
 }
 
+export type PostMortemStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+
+export interface PostMortem {
+  id: string;
+  title: string;
+  type: string;
+  status: PostMortemStatus;
+  description: string;
+  timeline?: string;
+  rootCause?: string;
+  lessonsLearned?: string;
+  actionItems?: string;
+  tags?: string[];
+  authorId: string;
+  author?: Pick<User, 'id' | 'name'>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Comment {
+  id: string;
+  postMortemId: string;
+  content: string;
+  authorId: string;
+  author?: Pick<User, 'id' | 'name'>;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface VerticalConfig {
   id: string;
   vertical: string;
@@ -84,6 +118,25 @@ export interface CompanyValue {
   name: string;
   description: string;
   isActive: boolean;
+}
+
+export interface VerticalBenchmark {
+  id: string;
+  vertical: UserVertical;
+  period: string;
+  metrics: Record<string, number>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MarketBenchmark {
+  id: string;
+  vertical: UserVertical;
+  competitorName: string;
+  period: string;
+  metrics: Record<string, number>;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -148,8 +201,8 @@ export interface RegisterDto {
   email: string;
   password: string;
   name: string;
-  role?: 'ADMIN' | 'ANALYST' | 'PARTICIPANT';
-  vertical?: string;
+  role?: UserRole;
+  vertical?: UserVertical;
 }
 
 export interface AuthResponse {
