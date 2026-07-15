@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, ChevronLeft, ChevronRight, Loader2, Lightbulb, BarChart2, Download, Eye, Edit, Trash2, Filter, MoreVertical } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Loader2, Lightbulb, BarChart2, Download, Eye, Trash2, Filter } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';

@@ -1,14 +1,16 @@
 import { Module } from '@nestjs/common';
-import { AiService } from './ai.service';
-import { AiController } from './ai.controller';
-import { HttpModule } from '@nestjs/axios';
-import { ConfigModule } from '@nestjs/config';
-import { VerticalsModule } from '../verticals/verticals.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AIController } from './ai.controller';
+import { AIService } from './ai.service';
+import { AIConversation } from './ai-conversation.entity';
+import { AIMessage } from './ai-message.entity';
+import { User } from '../users/user.entity';
+import { Project } from '../projects/project.entity';
 
 @Module({
-  imports: [HttpModule, ConfigModule, VerticalsModule],
-  controllers: [AiController],
-  providers: [AiService],
-  exports: [AiService],
+  imports: [TypeOrmModule.forFeature([AIConversation, AIMessage, User, Project])],
+  controllers: [AIController],
+  providers: [AIService],
+  exports: [AIService],
 })
-export class AiModule {}
+export class AIModule {}

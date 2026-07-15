@@ -1,164 +1,190 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, Inject, forwardRef } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { AIConversation } from './ai-conversation.entity';
+import { AIMessage } from './ai-message.entity';
+import { User } from '../users/user.entity';
+import { Project } from '../projects/project.entity';
 import { ConfigService } from '@nestjs/config';
-import { OpenAI } from 'openai';
-import { VerticalsService } from '../verticals/verticals.service';
+import { ProjectsService } from '../projects/projects.service';
 
-export interface IdeaSummary {
-  summary: string;
-  strengths: string;
-  weaknesses: string;
-  developmentWays: string;
-  priorityScore: number;
-  priority: 'HIGH' | 'MEDIUM' | 'LOW';
-  priorityColor: 'GREEN' | 'YELLOW' | 'RED';
-  priorityReason: string;
+interface AIResponse {
+  message: string;
+  tokensUsed: number;
 }
 
 @Injectable()
-export class AiService {
-  private openai: OpenAI;
-  private promptTemplate: string;
-
+export class AIService {
   constructor(
+    @InjectRepository(AIConversation)
+    private conversationRepository: Repository<AIConversation>,
+    @InjectRepository(AIMessage)
+    private messageRepository: Repository<AIMessage>,
+    @InjectRepository(Project)
+    private projectRepository: Repository<Project>,
     private configService: ConfigService,
-    private verticalsService: VerticalsService,
-  ) {
-    this.openai = new OpenAI({
-      apiKey: this.configService.get('OPENAI_API_KEY'),
+    @Inject(forwardRef(() => ProjectsService))
+    private projectsService: ProjectsService,
+  ) {}
+
+  async sendMessage(userId: string, content: string, conversationId?: string, projectId?: string): Promise<{ conversation: AIConversation; userMessage: AIMessage; aiMessage: AIMessage }> {
+    let conversation: AIConversation;
+
+    if (conversationId) {
+      const found = await this.conversationRepository.findOne({ 
+        where: { id: conversationId },
+        relations: ['user'],
+      });
+      if (!found) throw new NotFoundException('Conversa não encontrada');
+      if (found.userId !== userId) throw new ForbiddenException('Acesso negado');
+      conversation = found;
+    } else {
+      conversation = this.conversationRepository.create({
+        userId,
+        projectId,
+        title: content.slice(0, 50) + (content.length > 50 ? '...' : ''),
+      });
+      conversation = await this.conversationRepository.save(conversation);
+    }
+
+    const userMessage = this.messageRepository.create({
+      conversationId: conversation.id,
+      userId,
+      role: 'user',
+      content,
     });
+    await this.messageRepository.save(userMessage);
 
-    this.promptTemplate = `
-Você é um analista sênior de produtos da empresa azul. Sua tarefa é criar um resumo executivo formal e estruturado da ideia de produto abaixo E classificar sua prioridade.
+    const history = await this.getConversationHistory(conversation.id, 10);
+    const aiResponse = await this.generateAIResponse(content, history, projectId);
 
-DADOS DA IDEIA:
-- Título: {title}
-- Vertical responsável: {vertical}
-- Ideia central: {description}
-- Público-alvo: {targetAudience}
-- Motivação: {motivation}
-- Local de lançamento: {launchLocation}
-- Autor: {authorName}
-- Valores da empresa: {companyValues}
-{benchmarkContext}
+    const aiMessage = this.messageRepository.create({
+      conversationId: conversation.id,
+      userId,
+      role: 'assistant',
+      content: aiResponse.message,
+      metadata: { tokensUsed: aiResponse.tokensUsed },
+    });
+    await this.messageRepository.save(aiMessage);
 
-INSTRUÇÕES:
-1. Use vocabulário formal e corporativo
-2. NÃO crie um produto do zero - apenas analise a ideia apresentada
-3. Identifique pontos fortes, pontos fracos e formas de desenvolvimento
-4. Verifique se a ideia fere os valores da empresa
-5. CONSIDERE OS DADOS HISTÓRICOS E BENCHMARKS da vertical para embasar sua análise
-6. CLASSIFIQUE A PRIORIDADE da ideia (0-100):
-   - HIGH (VERDE, 70-100): Ideias excepcionais, alto impacto, alinhamento estratégico forte, viabilidade clara
-   - MEDIUM (AMARELO, 40-69): Ideias boas, potencial moderado, alguns pontos a melhorar
-   - LOW (VERMELHO, 0-39): Ideias com problemas significativos, baixo alinhamento, baixa viabilidade
-7. Retorne APENAS um JSON válido com os campos: summary, strengths, weaknesses, developmentWays, violatesValues (boolean), violationReason (string, opcional), priorityScore (number 0-100), priority (HIGH/MEDIUM/LOW), priorityColor (GREEN/YELLOW/RED), priorityReason (string)
-8. O campo summary deve ser um resumo detalhado de 3-5 parágrafos
-9. Os campos strengths, weaknesses, developmentWays devem ser listas em formato texto (bullet points)
-10. priorityReason deve explicar brevemente por que recebeu essa classificação
-11. Se houver dados históricos, mencione como a ideia se compara (ex: "Acima da média histórica de X%", "Taxa de sucesso histórica da vertical é Y%")
+    conversation.updatedAt = new Date();
+    await this.conversationRepository.save(conversation);
 
-RETORNO ESPERADO:
-{
-  "summary": "string",
-  "strengths": "string",
-  "weaknesses": "string", 
-  "developmentWays": "string",
-  "violatesValues": false,
-  "violationReason": "string ou null",
-  "priorityScore": 85,
-  "priority": "HIGH",
-  "priorityColor": "GREEN",
-  "priorityReason": "Alto impacto estratégico, forte alinhamento com valores da empresa, viabilidade técnica clara, acima da média histórica de 65% de sucesso"
-}
-`;
+    return { conversation, userMessage, aiMessage };
   }
 
-  private async getCompanyValues(): Promise<string> {
-    const values = await this.verticalsService.getCompanyValues();
-    return values.map(v => v.name).join(', ');
+  async getConversations(userId: string): Promise<AIConversation[]> {
+    return this.conversationRepository.find({
+      where: { userId, isActive: true },
+      order: { updatedAt: 'DESC' },
+      relations: ['project'],
+    });
   }
 
-  async generateSummary(ideaData: {
-    title: string;
-    vertical: string;
-    description: string;
-    targetAudience: string;
-    motivation?: string;
-    launchLocation?: string;
-    authorName: string;
-  }): Promise<IdeaSummary> {
-    const companyValues = await this.getCompanyValues();
-    const benchmarkContext = await this.verticalsService.getBenchmarkContext(ideaData.vertical as any);
-    const prompt = this.promptTemplate
-      .replace('{title}', ideaData.title)
-      .replace('{vertical}', ideaData.vertical)
-      .replace('{description}', ideaData.description)
-      .replace('{targetAudience}', ideaData.targetAudience)
-      .replace('{motivation}', ideaData.motivation || 'Não informado')
-      .replace('{launchLocation}', ideaData.launchLocation || 'Não informado')
-      .replace('{authorName}', ideaData.authorName)
-      .replace('{companyValues}', companyValues)
-      .replace('{benchmarkContext}', benchmarkContext);
+  async getConversationMessages(conversationId: string, userId: string): Promise<AIMessage[]> {
+    const conversation = await this.conversationRepository.findOne({ where: { id: conversationId } });
+    if (!conversation) throw new NotFoundException('Conversa não encontrada');
+    if (conversation.userId !== userId) throw new ForbiddenException('Acesso negado');
+
+    return this.messageRepository.find({
+      where: { conversationId },
+      order: { createdAt: 'ASC' },
+    });
+  }
+
+  async deleteConversation(conversationId: string, userId: string): Promise<void> {
+    const conversation = await this.conversationRepository.findOne({ where: { id: conversationId } });
+    if (!conversation) throw new NotFoundException('Conversa não encontrada');
+    if (conversation.userId !== userId) throw new ForbiddenException('Acesso negado');
+
+    await this.conversationRepository.remove(conversation);
+  }
+
+  async analyzeProject(prompt: string): Promise<{ summary: string; fullAnalysis: string; strengths: string; weaknesses: string; suggestions: string }> {
+    // Mock response for development - replace with OpenAI call when API key is available
+    return {
+      summary: 'Análise do projeto realizada com sucesso. O projeto demonstra potencial para a Azul Linhas Aéreas.',
+      fullAnalysis: `Análise completa do projeto:\n\n${prompt}\n\n---ANÁLISE---\nEste projeto está alinhado com os objetivos da Azul de expandir conectividade e melhorar experiência do cliente.`,
+      strengths: '• Alinhamento com a marca Azul\n• Público-alvo bem definido\n• Potencial de ROI positivo',
+      weaknesses: '• Necessita detalhamento do orçamento\n• Cronograma poderia ser mais específico',
+      suggestions: '• Adicionar métricas de sucesso claras\n• Definir marcos de entrega\n• Incluir plano de mitigação de riscos',
+    };
+  }
+
+  private async getConversationHistory(conversationId: string, limit: number): Promise<AIMessage[]> {
+    return this.messageRepository.find({
+      where: { conversationId },
+      order: { createdAt: 'DESC' },
+      take: limit,
+    });
+  }
+
+  private async generateAIResponse(userMessage: string, history: AIMessage[], projectId?: string): Promise<AIResponse> {
+    const systemPrompt = this.getSystemPrompt(projectId);
+    
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...history.reverse().map(m => ({ role: m.role, content: m.content })),
+      { role: 'user', content: userMessage },
+    ];
+
+    return this.callOpenAI(messages);
+  }
+
+  private getSystemPrompt(projectId?: string): string {
+    let prompt = `Você é um assistente de IA especializado em marketing e comunicação para a Azul Linhas Aéreas. 
+    
+    Diretrizes:
+    - Responda em português brasileiro
+    - Seja profissional, criativo e alinhado à marca Azul
+    - Foque em estratégias de marketing, campanhas, branding e comunicação
+    - Use tom amigável mas profissional
+    - Cite exemplos práticos quando possível
+    - Conheça a marca Azul: "A empresa aérea que mais conecta o Brasil"
+    - Foque em: experiência do cliente, conectividade, inovação, sustentabilidade`;
+    
+    if (projectId) {
+      prompt += `\n\nVocê está ajudando no desenvolvimento de um projeto específico.`;
+    }
+    
+    return prompt;
+  }
+
+  private async callOpenAI(messages: { role: string; content: string }[]): Promise<AIResponse> {
+    const apiKey = this.configService.get('OPENAI_API_KEY');
+    if (!apiKey) {
+      return {
+        message: 'Resposta simulada da IA. Configure OPENAI_API_KEY para respostas reais.',
+        tokensUsed: 0,
+      };
+    }
 
     try {
-      const completion = await this.openai.chat.completions.create({
-        model: this.configService.get('OPENAI_MODEL') || 'gpt-4-turbo-preview',
-        messages: [
-          { role: 'system', content: 'Você é um analista sênior de produtos. Responda APENAS com JSON válido.' },
-          { role: 'user', content: prompt },
-        ],
-        temperature: 0.7,
-        max_tokens: 3000,
-        response_format: { type: 'json_object' },
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4',
+          messages,
+          temperature: 0.7,
+          max_tokens: 2000,
+        }),
       });
 
-      const response = completion.choices[0]?.message?.content;
-      if (!response) throw new BadRequestException('Resposta vazia da IA');
-
-      const parsed = JSON.parse(response);
-      
-      if (parsed.violatesValues) {
-        throw new BadRequestException(`Ideia viola valores da empresa: ${parsed.violationReason}`);
-      }
-
+      const data: any = await response.json();
       return {
-        summary: parsed.summary,
-        strengths: parsed.strengths,
-        weaknesses: parsed.weaknesses,
-        developmentWays: parsed.developmentWays,
-        priorityScore: parsed.priorityScore || 50,
-        priority: parsed.priority || 'MEDIUM',
-        priorityColor: parsed.priorityColor || 'YELLOW',
-        priorityReason: parsed.priorityReason || 'Classificação padrão',
+        message: data.choices[0]?.message?.content || 'Erro ao gerar resposta',
+        tokensUsed: data.usage?.total_tokens || 0,
       };
     } catch (error) {
-      if (error instanceof SyntaxError) {
-        throw new BadRequestException('Resposta inválida da IA');
-      }
-      throw error;
+      console.error('OpenAI API Error:', error);
+      return {
+        message: 'Erro ao conectar com a IA. Tente novamente mais tarde.',
+        tokensUsed: 0,
+      };
     }
-  }
-
-  async checkCompanyValues(ideaData: any): Promise<{ violates: boolean; reason?: string }> {
-    const companyValues = await this.getCompanyValues();
-    const prompt = `
-Verifique se a seguinte ideia fere algum dos valores da empresa azul:
-Valores: ${companyValues}
-
-Ideia: ${ideaData.title}
-Descrição: ${ideaData.description}
-Vertical: ${ideaData.vertical}
-
-Responda APENAS com JSON: {"violates": boolean, "reason": "string ou null"}
-`;
-
-    const completion = await this.openai.chat.completions.create({
-      model: this.configService.get('OPENAI_MODEL') || 'gpt-4-turbo-preview',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.3,
-      response_format: { type: 'json_object' },
-    });
-
-    return JSON.parse(completion.choices[0]?.message?.content || '{"violates": false, "reason": null}');
   }
 }

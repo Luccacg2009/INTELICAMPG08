@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Loader2, UserPlus, MoreVertical, UserCheck, UserX, UserCog } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Loader2, UserPlus, ChevronLeft, ChevronRight, UserMinus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -20,14 +20,14 @@ interface UserListResponse {
 
 const roleLabels: Record<UserRole, string> = {
   ADMIN: 'Administrador',
-  ANALYST: 'Analista',
-  PARTICIPANT: 'Participante',
+  ANALYST: 'Analista de Marketing',
+  WORKER: 'Colaborador',
 };
 
 const roleColors: Record<UserRole, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
   ADMIN: 'danger',
   ANALYST: 'info',
-  PARTICIPANT: 'default',
+  WORKER: 'default',
 };
 
 const verticalLabels: Record<UserVertical, string> = {
@@ -58,7 +58,7 @@ export function UserManagement() {
   const [formData, setFormData] = useState({
     email: '',
     name: '',
-    role: 'PARTICIPANT' as UserRole,
+    role: 'WORKER' as UserRole,
     vertical: 'MARKETING' as UserVertical,
     password: '',
     isActive: true,
@@ -96,7 +96,7 @@ export function UserManagement() {
     setFormData({
       email: '',
       name: '',
-      role: 'PARTICIPANT',
+      role: 'WORKER',
       vertical: 'MARKETING',
       password: '',
       isActive: true,
@@ -167,6 +167,11 @@ export function UserManagement() {
     }
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPage(1);
+  };
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingUser(null);
@@ -187,7 +192,7 @@ export function UserManagement() {
 
       <Card>
         <CardContent className="p-6">
-          <form onSubmit={handleSearch} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -275,7 +280,7 @@ export function UserManagement() {
                           </Badge>
                         </td>
                         <td className="px-6 py-4">
-                          <Badge variant="info">{verticalLabels[user.vertical] || user.vertical}</Badge>
+                          <Badge variant="info">{user.vertical ? verticalLabels[user.vertical] : '—'}</Badge>
                         </td>
                         <td className="px-6 py-4">
                           <Badge variant={user.isActive ? 'success' : 'danger'}>
@@ -304,7 +309,7 @@ export function UserManagement() {
                               title="Desativar"
                               disabled={user.id === currentUser?.id}
                             >
-                              <UserX className="w-4 h-4" />
+                              <UserMinus className="w-4 h-4" />
                             </Button>
                           </div>
                         </td>
@@ -363,7 +368,7 @@ export function UserManagement() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required={!editingUser}
-                disabled={editingUser}
+                disabled={!!editingUser}
                 placeholder="email@exemplo.com"
               />
             </div>

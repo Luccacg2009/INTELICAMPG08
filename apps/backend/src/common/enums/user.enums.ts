@@ -1,8 +1,7 @@
 export enum UserRole {
   ADMIN = 'ADMIN',
   ANALYST = 'ANALYST',
-  PARTICIPANT = 'PARTICIPANT',
-  VERTICAL_LEAD = 'VERTICAL_LEAD',
+  WORKER = 'WORKER',
 }
 
 export enum UserVertical {
@@ -18,28 +17,21 @@ export enum UserVertical {
   OTHER = 'OTHER',
 }
 
-export enum IdeaStatus {
+export enum ProjectStatus {
+  DRAFT = 'DRAFT',
   PENDING_REVIEW = 'PENDING_REVIEW',
-  UNDER_REVIEW = 'UNDER_REVIEW',
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
   IN_DEVELOPMENT = 'IN_DEVELOPMENT',
   LAUNCHED = 'LAUNCHED',
   ARCHIVED = 'ARCHIVED',
-  AI_DELETION_REQUESTED = 'AI_DELETION_REQUESTED',
-  DELETED_BY_AI = 'DELETED_BY_AI',
 }
 
-export enum FeedbackType {
-  POSITIVE = 'POSITIVE',
-  NEGATIVE = 'NEGATIVE',
-}
-
-export enum AIDeletionStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
-  COMPLETED = 'COMPLETED',
+export enum ProjectPriority {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  CRITICAL = 'CRITICAL',
 }
 
 export const VERTICAL_LABELS: Record<UserVertical, string> = {
@@ -57,7 +49,30 @@ export const VERTICAL_LABELS: Record<UserVertical, string> = {
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   [UserRole.ADMIN]: 'Administrador',
-  [UserRole.ANALYST]: 'Analista',
-  [UserRole.PARTICIPANT]: 'Participante',
-  [UserRole.VERTICAL_LEAD]: 'Líder de Vertical',
+  [UserRole.ANALYST]: 'Analista de Marketing',
+  [UserRole.WORKER]: 'Colaborador',
 };
+
+export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
+  [ProjectStatus.DRAFT]: 'Rascunho',
+  [ProjectStatus.PENDING_REVIEW]: 'Em Análise',
+  [ProjectStatus.APPROVED]: 'Aprovado',
+  [ProjectStatus.REJECTED]: 'Rejeitado',
+  [ProjectStatus.IN_DEVELOPMENT]: 'Em Desenvolvimento',
+  [ProjectStatus.LAUNCHED]: 'Lançado',
+  [ProjectStatus.ARCHIVED]: 'Arquivado',
+};
+
+export const PROJECT_PRIORITY_LABELS: Record<ProjectPriority, string> = {
+  [ProjectPriority.LOW]: 'Baixa',
+  [ProjectPriority.MEDIUM]: 'Média',
+  [ProjectPriority.HIGH]: 'Alta',
+  [ProjectPriority.CRITICAL]: 'Crítica',
+};
+
+export enum EvaluationStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  NEEDS_REVISION = 'NEEDS_REVISION',
+}

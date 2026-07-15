@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, Loader2, ChevronLeft, ChevronRight, Edit, Trash2, BarChart2, Target, Settings, Eye, MoreVertical, Zap, Award, TrendingUp, Users } from 'lucide-react';
+import { Plus, Search, Loader2, ChevronLeft, ChevronRight, Edit, Trash2, BarChart2, Settings, Zap, Award, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -242,7 +242,7 @@ export function VerticalsManagement() {
                       <Card key={v.vertical} className="p-4 hover:shadow-md transition-shadow">
                         <div className="flex items-start justify-between mb-3">
                           <div>
-                            <h3 className="font-semibold text-gray-900">{verticalLabels[v.vertical] || v.vertical}</h3>
+                            <h3 className="font-semibold text-gray-900">{verticalLabels[v.vertical as UserVertical] || v.vertical}</h3>
                             <p className="text-sm text-gray-500">{v.name}</p>
                           </div>
                           <Badge variant={v.isActive ? 'success' : 'danger'}>{v.isActive ? 'Ativa' : 'Inativa'}</Badge>

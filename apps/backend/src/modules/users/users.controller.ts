@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, NotFoundException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto, UserResponseDto } from './dto/users.dto';
@@ -9,7 +9,6 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User } from './user.entity';
 import { UserRole, UserVertical } from '../../common/enums/user.enums';
 import * as bcrypt from 'bcryptjs';
-import { RegisterDto } from '../auth/dto/auth.dto';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -28,9 +27,9 @@ export class UsersController {
       email: dto.email,
       passwordHash,
       name: dto.name,
-      role: dto.role || UserRole.PARTICIPANT,
+      role: dto.role || UserRole.WORKER,
       vertical: dto.vertical || UserVertical.MARKETING,
-    } as RegisterDto & { passwordHash: string });
+    });
     return this.toResponse(user);
   }
 
@@ -39,7 +38,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Listar todos os usuários (apenas admin)' })
   @ApiResponse({ status: 200, type: [UserResponseDto] })
   async findAll(): Promise<UserResponseDto[]> {
-    const users = await this.usersService.findAll();
+    const users = await this.usersService.getAll();
     return users.map(this.toResponse);
   }
 
@@ -48,7 +47,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Listar analistas ativos' })
   @ApiResponse({ status: 200, type: [UserResponseDto] })
   async getAnalysts(): Promise<UserResponseDto[]> {
-    const users = await this.usersService.getAnalysts();
+    const users = await this.usersService.getByRole(UserRole.ANALYST);
     return users.map(this.toResponse);
   }
 
@@ -57,7 +56,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Listar usuários por vertical' })
   @ApiResponse({ status: 200, type: [UserResponseDto] })
   async findByVertical(@Param('vertical') vertical: string): Promise<UserResponseDto[]> {
-    const users = await this.usersService.findByVertical(vertical as any);
+    const users = await this.usersService.getByVertical(vertical as UserVertical);
     return users.map(this.toResponse);
   }
 

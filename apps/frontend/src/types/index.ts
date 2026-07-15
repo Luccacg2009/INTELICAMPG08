@@ -10,7 +10,7 @@ export interface User {
   updatedAt: string;
 }
 
-export type UserRole = 'ADMIN' | 'ANALYST' | 'PARTICIPANT';
+export type UserRole = 'ADMIN' | 'ANALYST' | 'WORKER';
 export type UserVertical = 'MARKETING' | 'PRODUCT' | 'SALES' | 'ENGINEERING' | 'DESIGN' | 'OPERATIONS' | 'FINANCE' | 'HR' | 'LEGAL' | 'OTHER';
 
 export type IdeaPriority = 'HIGH' | 'MEDIUM' | 'LOW';
@@ -209,4 +209,27 @@ export interface AuthResponse {
   user: User;
   accessToken: string;
   refreshToken: string;
+}
+
+export interface Pipeline {
+  id: string;
+  name: string;
+  stages: Array<{ id: string; name: string; order: number; color: string }>;
+  isDefault?: boolean;
+}
+
+export interface Deal {
+  id: string;
+  title: string;
+  description?: string;
+  value: number;
+  stage: string;
+  probability: number;
+  expectedCloseDate: string;
+  company: { id: string; name: string };
+  contact: { id: string; name: string; email: string };
+  owner: { id: string; name: string };
+  pipeline: { id: string; name: string };
+  createdAt: string;
+  updatedAt: string;
 }

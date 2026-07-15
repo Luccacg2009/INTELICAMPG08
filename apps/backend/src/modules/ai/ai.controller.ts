@@ -1,6 +1,6 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
-import { AiService, IdeaSummary } from './ai.service';
+import { Controller, Post, Get, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { AIService } from './ai.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User } from '../users/user.entity';
@@ -9,34 +9,44 @@ import { User } from '../users/user.entity';
 @ApiBearerAuth()
 @Controller('ai')
 @UseGuards(JwtAuthGuard)
-export class AiController {
-  constructor(private aiService: AiService) {}
+export class AIController {
+  constructor(private aiService: AIService) {}
 
-  @Post('generate-summary')
-  @ApiOperation({ summary: 'Gerar resumo da ideia via IA' })
-  @ApiResponse({ status: 200, description: 'Resumo gerado com sucesso' })
-  @ApiResponse({ status: 400, description: 'Ideia viola valores da empresa ou erro na IA' })
-  async generateSummary(
-    @Body() ideaData: {
-      title: string;
-      vertical: string;
-      description: string;
-      targetAudience: string;
-      motivation?: string;
-      launchLocation?: string;
-    },
+  @Post('chat')
+  @ApiOperation({ summary: 'Enviar mensagem para o agente de IA' })
+  @ApiResponse({ status: 201, description: 'Resposta da IA' })
+  async chat(
+    @Body() body: { content: string; conversationId?: string; projectId?: string },
     @CurrentUser() user: User,
-  ): Promise<IdeaSummary> {
-    return this.aiService.generateSummary({
-      ...ideaData,
-      authorName: user.name,
-    });
+  ) {
+    return this.aiService.sendMessage(user.id, body.content, body.conversationId, body.projectId);
   }
 
-  @Post('check-values')
-  @ApiOperation({ summary: 'Verificar se ideia viola valores da empresa' })
-  @ApiResponse({ status: 200 })
-  async checkValues(@Body() ideaData: any) {
-    return this.aiService.checkCompanyValues(ideaData);
+  @Get('conversations')
+  @ApiOperation({ summary: 'Listar conversas do usuário' })
+  @ApiResponse({ status: 200, description: 'Lista de conversas' })
+  async getConversations(@CurrentUser() user: User) {
+    return this.aiService.getConversations(user.id);
+  }
+
+  @Get('conversations/:id/messages')
+  @ApiOperation({ summary: 'Obter mensagens de uma conversa' })
+  @ApiResponse({ status: 200, description: 'Lista de mensagens' })
+  async getMessages(
+    @Param('id') conversationId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.aiService.getConversationMessages(conversationId, user.id);
+  }
+
+  @Delete('conversations/:id')
+  @ApiOperation({ summary: 'Excluir conversa' })
+  @ApiResponse({ status: 200, description: 'Conversa excluída' })
+  async deleteConversation(
+    @Param('id') conversationId: string,
+    @CurrentUser() user: User,
+  ) {
+    await this.aiService.deleteConversation(conversationId, user.id);
+    return { message: 'Conversa excluída com sucesso' };
   }
 }

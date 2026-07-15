@@ -12,7 +12,7 @@ import { UserRole, UserVertical } from '../../types';
 const roleLabels: Record<UserRole, string> = {
   ADMIN: 'Administrador',
   ANALYST: 'Analista',
-  PARTICIPANT: 'Participante',
+  WORKER: 'Colaborador',
 };
 
 const verticalLabels: Record<UserVertical, string> = {
@@ -195,7 +195,7 @@ export function UserProfile() {
                       <h2 className="text-xl font-semibold text-gray-900">{formData.name || 'Usuário'}</h2>
                       <p className="text-gray-500">{formData.email}</p>
                       <div className="flex items-center gap-3 mt-2">
-                        <Badge variant="info">{roleLabels[user?.role || 'PARTICIPANT']}</Badge>
+                        <Badge variant="info">{roleLabels[user?.role || 'WORKER']}</Badge>
                         <Badge variant="default" className="bg-gray-100 text-gray-700">{verticalLabels[formData.vertical] || formData.vertical}</Badge>
                       </div>
                     </div>

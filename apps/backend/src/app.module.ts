@@ -1,37 +1,37 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
-import { IdeasModule } from './modules/ideas/ideas.module';
-import { FeedbackModule } from './modules/feedback/feedback.module';
-import { AiModule } from './modules/ai/ai.module';
+import { ProjectsModule } from './modules/projects/projects.module';
+import { AIModule } from './modules/ai/ai.module';
 import { PdfModule } from './modules/pdf/pdf.module';
-import { VerticalsModule } from './modules/verticals/verticals.module';
-import { PostMortemModule } from './modules/post-mortem/post-mortem.module';
-import { CrmModule } from './modules/crm/crm.module';
-import { FinancialModule } from './modules/financial/financial.module';
-import { LgpdModule } from './modules/lgpd/lgpd.module';
-import { NpsModule } from './modules/nps/nps.module';
-import { ChurnModule } from './modules/churn/churn.module';
-import { PrismaModule } from './shared/prisma/prisma.module';
+import { User } from './modules/users/user.entity';
+import { Project } from './modules/projects/project.entity';
+import { ProjectEvaluation } from './modules/projects/project-evaluation.entity';
+import { AIConversation } from './modules/ai/ai-conversation.entity';
+import { AIMessage } from './modules/ai/ai-message.entity';
+import { RefreshToken } from './modules/users/refresh-token.entity';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
-    PrismaModule,
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432'),
+      username: process.env.DB_USERNAME || 'postgres',
+      password: process.env.DB_PASSWORD || 'postgres',
+      database: process.env.DB_NAME || 'marketing_azul',
+      entities: [User, Project, ProjectEvaluation, AIConversation, AIMessage, RefreshToken],
+      synchronize: process.env.NODE_ENV !== 'production',
+      logging: process.env.NODE_ENV !== 'production',
+    }),
     AuthModule,
     UsersModule,
-    IdeasModule,
-    FeedbackModule,
-    AiModule,
+    ProjectsModule,
+    AIModule,
     PdfModule,
-    VerticalsModule,
-    PostMortemModule,
-    CrmModule,
-    FinancialModule,
-    LgpdModule,
-    NpsModule,
-    ChurnModule,
   ],
 })
 export class AppModule {}

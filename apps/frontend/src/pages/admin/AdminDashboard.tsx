@@ -1,4 +1,4 @@
-import { Users, Lightbulb, CheckCircle, AlertTriangle, BarChart2, TrendingUp, FileText, Clock, Loader2 } from 'lucide-react';
+import { Users, Lightbulb, CheckCircle, FileText, Clock, Loader2, TrendingUp } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { api } from '../../services/api';
@@ -16,6 +16,7 @@ interface DashboardStats {
   };
   ideas: {
     total: number;
+    draft: number;
     pendingReview: number;
     approved: number;
     rejected: number;
@@ -62,7 +63,7 @@ export function AdminDashboard() {
 
       setStats({
         users: usersRes.status === 'fulfilled' ? usersRes.value.data : { total: 0, admins: 0, analysts: 0, participants: 0, active: 0, inactive: 0 },
-        ideas: ideasRes.status === 'fulfilled' ? ideasRes.value.data : { total: 0, pendingReview: 0, approved: 0, rejected: 0, inDevelopment: 0, launched: 0, archived: 0 },
+        ideas: ideasRes.status === 'fulfilled' ? ideasRes.value.data : { total: 0, draft: 0, pendingReview: 0, approved: 0, rejected: 0, inDevelopment: 0, launched: 0, archived: 0 },
         feedbacks: feedbacksRes.status === 'fulfilled' ? feedbacksRes.value.data : { total: 0, positive: 0, negative: 0 },
         postMortems: postMortemsRes.status === 'fulfilled' ? postMortemsRes.value.data : { total: 0, published: 0, draft: 0 },
         recentActivity: activityRes.status === 'fulfilled' ? activityRes.value.data : [],
@@ -77,25 +78,25 @@ export function AdminDashboard() {
 
   const statCards = [
     { label: 'Total de Usuários', value: stats?.users.total || 0, icon: Users, color: 'text-blue-600', bg: 'bg-blue-100', subtitle: `${stats?.users.active || 0} ativos` },
-    { label: 'Total de Ideias', value: stats?.ideas.total || 0, icon: Lightbulb, color: 'text-yellow-600', bg: 'bg-yellow-100', subtitle: `${stats?.ideas.pendingReview || 0} pendentes` },
-    { label: 'Ideias Aprovadas', value: stats?.ideas.approved || 0, icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-100', subtitle: `${stats?.ideas.launched || 0} lançadas` },
+    { label: 'Total de Projetos', value: stats?.ideas.total || 0, icon: Lightbulb, color: 'text-yellow-600', bg: 'bg-yellow-100', subtitle: `${stats?.ideas.pendingReview || 0} pendentes` },
+    { label: 'Projetos Aprovados', value: stats?.ideas.approved || 0, icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-100', subtitle: `${stats?.ideas.launched || 0} lançados` },
     { label: 'Feedbacks', value: stats?.feedbacks.total || 0, icon: FileText, color: 'text-purple-600', bg: 'bg-purple-100', subtitle: `${stats?.feedbacks.positive || 0} positivos` },
   ];
 
   const roleBreakdown = [
     { label: 'Administradores', value: stats?.users.admins || 0, color: 'bg-red-100 text-red-700' },
     { label: 'Analistas', value: stats?.users.analysts || 0, color: 'bg-blue-100 text-blue-700' },
-    { label: 'Participantes', value: stats?.users.participants || 0, color: 'bg-green-100 text-green-700' },
+    { label: 'Colaboradores', value: stats?.users.participants || 0, color: 'bg-green-100 text-green-700' },
   ];
 
   const ideaStatusBreakdown = [
-    { label: 'Aguardando', value: stats?.ideas.pendingReview || 0, color: 'bg-yellow-100 text-yellow-700' },
-    { label: 'Em Análise', value: stats?.ideas.approved || 0, color: 'bg-blue-100 text-blue-700' },
-    { label: 'Aprovadas', value: stats?.ideas.approved || 0, color: 'bg-green-100 text-green-700' },
-    { label: 'Rejeitadas', value: stats?.ideas.rejected || 0, color: 'bg-red-100 text-red-700' },
+    { label: 'Rascunho', value: stats?.ideas.draft || 0, color: 'bg-gray-100 text-gray-700' },
+    { label: 'Em Análise', value: stats?.ideas.pendingReview || 0, color: 'bg-yellow-100 text-yellow-700' },
+    { label: 'Aprovados', value: stats?.ideas.approved || 0, color: 'bg-green-100 text-green-700' },
+    { label: 'Rejeitados', value: stats?.ideas.rejected || 0, color: 'bg-red-100 text-red-700' },
     { label: 'Desenvolvimento', value: stats?.ideas.inDevelopment || 0, color: 'bg-purple-100 text-purple-700' },
-    { label: 'Lançadas', value: stats?.ideas.launched || 0, color: 'bg-indigo-100 text-indigo-700' },
-    { label: 'Arquivadas', value: stats?.ideas.archived || 0, color: 'bg-gray-100 text-gray-700' },
+    { label: 'Lançados', value: stats?.ideas.launched || 0, color: 'bg-indigo-100 text-indigo-700' },
+    { label: 'Arquivados', value: stats?.ideas.archived || 0, color: 'bg-gray-100 text-gray-700' },
   ];
 
   if (loading) {
@@ -169,7 +170,7 @@ export function AdminDashboard() {
               ))}
               <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-900">Total</span>
-                <span className="text-lg font-bold text-gray-900">{stats?.ideas.total || 0}</span>
+                <span className="text-lg font-bold text-gray-900">{stats?.ideas?.total || 0}</span>
               </div>
             </div>
           </CardContent>
@@ -206,7 +207,7 @@ export function AdminDashboard() {
             </div>
           ) : (
             <div className="space-y-4">
-              {stats.recentActivity.slice(0, 10).map((activity) => (
+              {stats?.recentActivity.slice(0, 10).map((activity) => (
                 <div key={activity.id} className="flex items-start gap-4 p-3 hover:bg-gray-50 rounded-lg">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                     <TrendingUp className="w-4 h-4 text-blue-600" />

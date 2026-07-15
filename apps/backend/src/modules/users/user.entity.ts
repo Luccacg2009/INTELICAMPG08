@@ -1,9 +1,10 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 import { UserRole, UserVertical } from '../../common/enums/user.enums';
 import { RefreshToken } from './refresh-token.entity';
-import { Idea } from '../ideas/idea.entity';
-import { Feedback } from '../feedback/feedback.entity';
-import { AIDeletion } from '../ai/ai-deletion.entity';
+import { Project } from '../projects/project.entity';
+import { ProjectEvaluation } from '../projects/project-evaluation.entity';
+import { AIConversation } from '../ai/ai-conversation.entity';
+import { AIMessage } from '../ai/ai-message.entity';
 
 @Entity('users')
 @Index(['email'], { unique: true })
@@ -21,7 +22,7 @@ export class User {
   @Column()
   name: string;
 
-  @Column({ type: 'enum', enum: UserRole, default: UserRole.PARTICIPANT })
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.WORKER })
   role: UserRole;
 
   @Column({ type: 'enum', enum: UserVertical, default: UserVertical.MARKETING, nullable: true })
@@ -36,20 +37,26 @@ export class User {
   @Column({ name: 'last_login_at', nullable: true })
   lastLoginAt: Date;
 
+  @Column({ name: 'must_change_password', default: true })
+  mustChangePassword: boolean;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @OneToMany(() => Idea, idea => idea.author)
-  ideas: Idea[];
+  @OneToMany(() => Project, project => project.author)
+  projects: Project[];
 
-  @OneToMany(() => Feedback, feedback => feedback.author)
-  feedbacks: Feedback[];
+  @OneToMany(() => ProjectEvaluation, evaluation => evaluation.evaluator)
+  evaluations: ProjectEvaluation[];
 
-  @OneToMany(() => AIDeletion, deletion => deletion.requester)
-  aiDeletions: AIDeletion[];
+  @OneToMany(() => AIConversation, conversation => conversation.user)
+  aiConversations: AIConversation[];
+
+  @OneToMany(() => AIMessage, message => message.user)
+  aiMessages: AIMessage[];
 
   @OneToMany(() => RefreshToken, token => token.user)
   refreshTokens: RefreshToken[];

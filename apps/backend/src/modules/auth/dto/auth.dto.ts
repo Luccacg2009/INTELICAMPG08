@@ -1,16 +1,15 @@
-import { IsEmail, IsString, MinLength, MaxLength, IsOptional, IsEnum } from 'class-validator';
+import { IsEmail, IsString, MinLength, MaxLength, IsOptional, IsEnum, IsNotEmpty } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole, UserVertical } from '../../../common/enums/user.enums';
 
 export class RegisterDto {
-  @ApiProperty({ example: 'joao@empresa.com' })
+  @ApiProperty({ example: 'joao@azul.com.br' })
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: 'senhaSegura123', minLength: 8 })
+  @ApiProperty({ example: 'azul123', description: 'Senha inicial baseada no papel: WORKER=azul123, ANALYST=azul456, ADMIN=azul789' })
   @IsString()
-  @MinLength(8)
-  @MaxLength(50)
+  @IsNotEmpty()
   password: string;
 
   @ApiProperty({ example: 'João Silva' })
@@ -19,10 +18,9 @@ export class RegisterDto {
   @MaxLength(100)
   name: string;
 
-  @ApiPropertyOptional({ enum: UserRole, example: UserRole.PARTICIPANT })
-  @IsOptional()
+  @ApiProperty({ enum: UserRole, example: UserRole.WORKER, description: 'Papel do usuário: WORKER (colaborador), ANALYST (analista de marketing), ADMIN (administrador)' })
   @IsEnum(UserRole)
-  role?: UserRole;
+  role: UserRole;
 
   @ApiPropertyOptional({ enum: UserVertical, example: UserVertical.MARKETING })
   @IsOptional()
@@ -31,12 +29,13 @@ export class RegisterDto {
 }
 
 export class LoginDto {
-  @ApiProperty({ example: 'joao@empresa.com' })
+  @ApiProperty({ example: 'joao@azul.com.br' })
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: 'senhaSegura123' })
+  @ApiProperty({ example: 'azul123' })
   @IsString()
+  @IsNotEmpty()
   password: string;
 }
 

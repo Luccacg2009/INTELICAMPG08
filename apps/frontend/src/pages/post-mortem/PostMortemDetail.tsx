@@ -115,7 +115,7 @@ export function PostMortemDetail() {
     return <div className="p-6 text-center"><p className="text-gray-500">Post-mortem não encontrado</p></div>;
   }
 
-  const canEdit = postMortem.authorId === postMortem.author?.id || ['ADMIN', 'ANALYST'].includes(postMortem.author?.role || '');
+  const canEdit = postMortem.authorId === postMortem.author?.id || ['ADMIN', 'ANALYST'].includes((postMortem.author as any)?.role || '');
 
   return (
     <div className="p-6 space-y-6">

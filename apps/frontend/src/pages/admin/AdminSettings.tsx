@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Save, Loader2, Eye, EyeOff, Palette, Shield, Plug, Wrench, Bell, Globe, Paintbrush, Key, Users, Lock, Mail, Smartphone } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
-import { Badge } from '../../components/ui/Badge';
+import { Save, Loader2, Eye, EyeOff, Palette, Shield, Plug, Wrench, Bell } from 'lucide-react';
+import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { api } from '../../services/api';
@@ -97,7 +96,7 @@ const defaultSettings: SystemSettings = {
   },
 };
 
-function handleChange<T>(settings: SystemSettings, section: keyof SystemSettings, key: string, value: any): SystemSettings {
+function handleChange(settings: SystemSettings, section: keyof SystemSettings, key: string, value: any): SystemSettings {
   return {
     ...settings,
     [section]: {
@@ -113,17 +112,6 @@ export function AdminSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showSendgridKey, setShowSendgridKey] = useState(false);
-
-  const fetchSettings = async () => {
-    try {
-      const response = await api.get<SystemSettings>('/admin/settings');
-      setSettings({ ...defaultSettings, ...response.data });
-    } catch (error) {
-      console.error('Error fetching settings:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // We don't have the backend endpoint yet, so just use defaults
 

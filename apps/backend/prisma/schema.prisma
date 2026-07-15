@@ -10,6 +10,7 @@ datasource db {
 enum UserRole {
   ADMIN
   ANALYST
+  WORKER
 }
 
 enum UserVertical {
@@ -25,7 +26,8 @@ enum UserVertical {
   OTHER
 }
 
-enum IdeaStatus {
+enum ProjectStatus {
+  DRAFT
   PENDING_REVIEW
   APPROVED
   REJECTED
@@ -34,16 +36,11 @@ enum IdeaStatus {
   ARCHIVED
 }
 
-enum FeedbackType {
-  POSITIVE
-  NEGATIVE
-}
-
-enum AIDeletionStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  COMPLETED
+enum ProjectPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
 }
 
 model User {
@@ -51,19 +48,20 @@ model User {
   email         String       @unique
   passwordHash  String
   name          String
-  role          UserRole     @default(ANALYST)
+  role          UserRole     @default(WORKER)
   vertical      UserVertical @default(MARKETING)
   avatarUrl     String?
   isActive      Boolean      @default(true)
   lastLoginAt   DateTime?
+  mustChangePassword Boolean @default(true)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
-  ideas              Idea[]       @relation("IdeaAuthor")
-  feedbacks          Feedback[]   @relation("FeedbackAuthor")
-  aiDeletions        AIDeletion[] @relation("AIDeletionRequester")
-  reviewedAiDeletions AIDeletion[] @relation("AIDeletionReviewer")
-  refreshTokens      RefreshToken[]
+  projects          Project[]          @relation("ProjectAuthor")
+  evaluations       ProjectEvaluation[] @relation("ProjectEvaluator")
+  aiConversations   AIConversation[]   @relation("ConversationUser")
+  aiMessages        AIMessage[]        @relation("MessageUser")
+  refreshTokens     RefreshToken[]
 
   @@map("users")
 }
@@ -79,63 +77,79 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
-model Idea {
-  id              String       @id @default(cuid())
+model Project {
+  id              String        @id @default(cuid())
   title           String
-  centralIdea     String       @map("central_idea")
-  targetAudience  String       @map("target_audience")
+  description     String
+  centralIdea     String        @map("central_idea")
+  targetAudience  String        @map("target_audience")
   vertical        UserVertical
   authorId        String
-  author          User         @relation("IdeaAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  author          User          @relation("ProjectAuthor", fields: [authorId], references: [id], onDelete: Cascade)
   reason          String?
-  launchLocation  String?      @map("launch_location")
-  status          IdeaStatus   @default(PENDING_REVIEW)
+  launchLocation  String?       @map("launch_location")
+  status          ProjectStatus @default(DRAFT)
+  priority        ProjectPriority @default(MEDIUM)
   
-  aiSummary       String?      @map("ai_summary")
-  aiStrengths     String?      @map("ai_strengths")
-  aiWeaknesses    String?      @map("ai_weaknesses")
-  aiDevelopment   String?      @map("ai_development")
-  pdfUrl          String?      @map("pdf_url")
+  aiSummary       String?       @map("ai_summary")
+  aiStrengths     String?       @map("ai_strengths")
+  aiWeaknesses    String?       @map("ai_weaknesses")
+  aiDevelopment   String?       @map("ai_development")
+  pdfUrl          String?       @map("pdf_url")
 
-  feedbacks       Feedback[]
-  aiDeletion      AIDeletion?
+  evaluations     ProjectEvaluation[]
+  aiConversation  AIConversation?
 
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
-  @@map("ideas")
+  @@map("projects")
 }
 
-model Feedback {
-  id                  String       @id @default(cuid())
-  content             String
-  type                FeedbackType
-  negativeReason      String?      @map("negative_reason")
-  marketingSuggestions String[]    @map("marketing_suggestions")
-  ideaId              String
-  idea                Idea         @relation(fields: [ideaId], references: [id], onDelete: Cascade)
-  authorId            String
-  author              User         @relation("FeedbackAuthor", fields: [authorId], references: [id], onDelete: Cascade)
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @updatedAt
+model ProjectEvaluation {
+  id                String        @id @default(cuid())
+  projectId         String
+  project           Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  evaluatorId       String
+  evaluator         User          @relation("ProjectEvaluator", fields: [evaluatorId], references: [id], onDelete: Cascade)
+  status            ProjectStatus
+  strengths         String?
+  weaknesses        String?
+  suggestions       String?
+  recommendation    String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
-  @@unique([ideaId, authorId])
-  @@map("feedbacks")
+  @@unique([projectId, evaluatorId])
+  @@map("project_evaluations")
 }
 
-model AIDeletion {
-  id            String           @id @default(cuid())
-  ideaId        String           @unique
-  idea          Idea             @relation(fields: [ideaId], references: [id], onDelete: Cascade)
-  requesterId   String
-  requester     User             @relation("AIDeletionRequester", fields: [requesterId], references: [id], onDelete: Cascade)
-  reason        String
-  status        AIDeletionStatus @default(PENDING)
-  reviewedById  String?
-  reviewedBy    User?            @relation("AIDeletionReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
-  reviewedAt    DateTime?
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+model AIConversation {
+  id          String   @id @default(cuid())
+  projectId   String?  @unique
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation("ConversationUser", fields: [userId], references: [id], onDelete: Cascade)
+  title       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  @@map("ai_deletions")
+  messages    AIMessage[]
+
+  @@map("ai_conversations")
+}
+
+model AIMessage {
+  id              String   @id @default(cuid())
+  conversationId  String
+  conversation    AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation("MessageUser", fields: [userId], references: [id], onDelete: Cascade)
+  role            String   // 'user' | 'assistant'
+  content         String
+  metadata        Json?
+  createdAt       DateTime @default(now())
+
+  @@map("ai_messages")
 }

@@ -243,7 +243,7 @@ export function DealsList() {
               pipeline.stages
                 .sort((a, b) => a.order - b.order)
                 .map(stage => {
-                  const stageDeals = deals.filter(d => d.stage === stage.id && d.pipelineId === pipeline.id);
+                  const stageDeals = deals.filter(d => d.stage === stage.id && d.pipeline.id === pipeline.id);
                   const totalValue = stageDeals.reduce((sum, d) => sum + d.value, 0);
                   return (
                     <div key={`${pipeline.id}-${stage.id}`} className="min-w-[320px] max-w-[320px] flex-shrink-0">

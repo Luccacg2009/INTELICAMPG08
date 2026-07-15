@@ -1,48 +1,41 @@
-import { Controller, Get, Param, Res, UseGuards, Req } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
-import { Response } from 'express';
-import { PdfService } from './pdf.service';
-import { IdeasService } from '../ideas/ideas.service';
+import { Controller, Get, Param, UseGuards, Res, Req } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { PDFService } from './pdf.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User } from '../users/user.entity';
+import { UserRole } from '../../common/enums/user.enums';
+import { Response } from 'express';
+import { ProjectsService } from '../projects/projects.service';
 
 @ApiTags('pdf')
 @ApiBearerAuth()
 @Controller('pdf')
-@UseGuards(JwtAuthGuard)
-export class PdfController {
+@UseGuards(JwtAuthGuard, RolesGuard)
+export class PDFController {
   constructor(
-    private pdfService: PdfService,
-    private ideasService: IdeasService,
+    private pdfService: PDFService,
+    private projectsService: ProjectsService,
   ) {}
 
-  @Get('idea/:id')
-  @ApiOperation({ summary: 'Gerar e baixar PDF da ideia' })
-  @ApiResponse({ status: 200, description: 'PDF gerado com sucesso' })
-  @ApiResponse({ status: 404, description: 'Ideia não encontrada' })
-  async generateIdeaPdf(@Param('id') id: string, @Res() res: Response, @CurrentUser() user: User) {
-    const idea = await this.ideasService.findById(id);
-
-    if (!idea.aiSummary || !idea.aiStrengths || !idea.aiWeaknesses || !idea.aiDevelopment) {
-      return res.status(400).json({ message: 'Resumo por IA não disponível para esta ideia' });
-    }
-
-    const pdfBuffer = await this.pdfService.generateIdeaPdf({
-      idea,
-      author: idea.author,
-      summary: idea.aiSummary,
-      strengths: idea.aiStrengths,
-      weaknesses: idea.aiWeaknesses,
-      developmentWays: idea.aiDevelopment,
-    });
-
+  @Get('projects/:id')
+  @Roles(UserRole.ANALYST, UserRole.ADMIN)
+  @ApiOperation({ summary: 'Gerar PDF do projeto' })
+  @ApiResponse({ status: 200, description: 'PDF gerado' })
+  async generateProjectPdf(
+    @Param('id') id: string,
+    @Res() res: Response,
+    @CurrentUser() user: User,
+  ) {
+    const project = await this.projectsService.findById(id, user);
+    const pdfBuffer = await this.pdfService.generateProjectPdf(project);
     res.set({
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="ideia-${idea.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.pdf"`,
+      'Content-Disposition': `attachment; filename="projeto-${id}.pdf"`,
       'Content-Length': pdfBuffer.length,
     });
-
     res.send(pdfBuffer);
   }
 }

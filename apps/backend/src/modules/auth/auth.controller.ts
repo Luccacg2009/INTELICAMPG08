@@ -1,7 +1,7 @@
 import { Controller, Post, Body, Get, UseGuards, Req, Res, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService, Tokens } from './auth.service';
-import { RegisterDto, LoginDto, RefreshDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, RefreshDto, ChangePasswordDto } from './dto/auth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -17,6 +17,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Registrar novo usuário' })
   @ApiResponse({ status: 201, description: 'Usuário criado com sucesso' })
   @ApiResponse({ status: 409, description: 'Email já cadastrado' })
+  @ApiResponse({ status: 400, description: 'Senha inicial incorreta para o papel selecionado' })
   async register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
@@ -62,6 +63,16 @@ export class AuthController {
   async me(@CurrentUser() user: User) {
     const { passwordHash, refreshTokens, ...userWithoutSecrets } = user;
     return userWithoutSecrets;
+  }
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Alterar senha (obrigatório no primeiro login)' })
+  @ApiBearerAuth()
+  async changePassword(@CurrentUser() user: User, @Body() dto: ChangePasswordDto) {
+    await this.authService.changePassword(user.id, dto.currentPassword, dto.newPassword);
+    return { message: 'Senha alterada com sucesso' };
   }
 
   private setRefreshTokenCookie(res: Response, refreshToken: string) {
