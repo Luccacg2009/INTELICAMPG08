@@ -15,6 +15,7 @@ import { CrmDashboard, CompaniesList, ContactsList, DealsList, ActivitiesList } 
 import { VerticalsManagement } from './pages/verticals/VerticalsManagement';
 import { PostMortemsList, PostMortemDetail } from './pages/post-mortem';
 import { UserProfile } from './pages/profile';
+import { ProjectsList, ProjectDetail } from './pages/projects';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 function LayoutWrapper() {
@@ -57,8 +58,9 @@ function App() {
           {/* Post-Mortem Routes */}
           <Route path="/post-mortems" element={<ProtectedRoute allowedRoles={['PARTICIPANT', 'ANALYST', 'ADMIN']}><PostMortemsList /></ProtectedRoute>} />
           <Route path="/post-mortems/:id" element={<ProtectedRoute allowedRoles={['PARTICIPANT', 'ANALYST', 'ADMIN']}><PostMortemDetail /></ProtectedRoute>} />
-          {/* Profile Route */}
-          <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+          {/* Projects Routes */}
+          <Route path="/projects" element={<ProtectedRoute allowedRoles={['WORKER', 'ANALYST', 'ADMIN']}><ProjectsList /></ProtectedRoute>} />
+          <Route path="/projects/:id" element={<ProtectedRoute allowedRoles={['WORKER', 'ANALYST', 'ADMIN']}><ProjectDetail /></ProtectedRoute>} />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

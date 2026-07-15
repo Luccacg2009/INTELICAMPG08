@@ -9,14 +9,14 @@ export class ProjectEvaluation {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'project_id' })
+  @Column({ name: 'project_id', type: 'uuid' })
   projectId: string;
 
   @ManyToOne(() => Project, project => project.evaluations, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'project_id' })
   project: Project;
 
-  @Column({ name: 'evaluator_id' })
+  @Column({ name: 'evaluator_id', type: 'uuid' })
   evaluatorId: string;
 
   @ManyToOne(() => User, user => user.evaluations)
@@ -26,22 +26,22 @@ export class ProjectEvaluation {
   @Column({ type: 'enum', enum: ProjectStatus })
   status: ProjectStatus;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'text' })
   strengths: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'text' })
   weaknesses: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'text' })
   suggestions: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'text' })
   recommendation: string;
 
-  @Column({ default: 0 })
+  @Column({ default: 0, type: 'int' })
   score: number;
 
-  @Column({ name: 'reviewed_at', nullable: true })
+  @Column({ name: 'reviewed_at', nullable: true, type: 'timestamp' })
   reviewedAt: Date;
 
   @CreateDateColumn({ name: 'created_at' })
