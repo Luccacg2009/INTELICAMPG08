@@ -3,10 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AIConversation } from './ai-conversation.entity';
 import { AIMessage } from './ai-message.entity';
+import { AIFeedback, AIFeedbackType, AIFeedbackStatus } from './ai-feedback.entity';
 import { User } from '../users/user.entity';
 import { Project } from '../projects/project.entity';
 import { ConfigService } from '@nestjs/config';
 import { ProjectsService } from '../projects/projects.service';
+import { UserRole, UserVertical } from '../../common/enums/user.enums';
 
 interface AIResponse {
   message: string;
@@ -20,6 +22,10 @@ export class AIService {
     private conversationRepository: Repository<AIConversation>,
     @InjectRepository(AIMessage)
     private messageRepository: Repository<AIMessage>,
+    @InjectRepository(AIFeedback)
+    private feedbackRepository: Repository<AIFeedback>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     @InjectRepository(Project)
     private projectRepository: Repository<Project>,
     private configService: ConfigService,
@@ -109,6 +115,197 @@ export class AIService {
       weaknesses: '• Necessita detalhamento do orçamento\n• Cronograma poderia ser mais específico',
       suggestions: '• Adicionar métricas de sucesso claras\n• Definir marcos de entrega\n• Incluir plano de mitigação de riscos',
     };
+  }
+
+  /**
+   * Process analyst feedback through AI and send to vertical owner + marketing admin
+   * Spec item 6: Analistas fazem feedback para IA → IA envia para vertical responsável + admin marketing
+   * Good feedback: como marketing pode ajudar a desenvolver
+   * Bad feedback: motivo de ser má ideia
+   */
+  async processAnalystFeedback(
+    projectId: string,
+    analystId: string,
+    type: AIFeedbackType,
+    content: string,
+  ): Promise<AIFeedback> {
+    // Get project details
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+      relations: ['author'],
+    });
+    if (!project) throw new NotFoundException('Projeto não encontrado');
+
+    // Get analyst info
+    const analyst = await this.userRepository.findOne({ where: { id: analystId } });
+    if (!analyst) throw new NotFoundException('Analista não encontrado');
+
+    // Get vertical owner (users in same vertical as project with WORKER role)
+    const verticalOwner = await this.userRepository.findOne({
+      where: { vertical: project.vertical, role: UserRole.WORKER, isActive: true },
+    });
+
+    // Get marketing admin
+    const marketingAdmin = await this.userRepository.findOne({
+      where: { role: UserRole.ADMIN, vertical: UserVertical.MARKETING, isActive: true },
+    });
+
+    // Create feedback record
+    const feedback = this.feedbackRepository.create({
+      projectId,
+      analystId,
+      type,
+      content,
+      status: AIFeedbackStatus.PENDING,
+    });
+    await this.feedbackRepository.save(feedback);
+
+    // Process through AI to structure the response
+    const aiProcessedContent = await this.processFeedbackWithAI(project, type, content);
+
+    // Update feedback with AI processed content
+    feedback.aiProcessedContent = aiProcessedContent;
+    feedback.status = AIFeedbackStatus.PROCESSED;
+    feedback.processedAt = new Date();
+    await this.feedbackRepository.save(feedback);
+
+    // Notify vertical owner
+    if (verticalOwner) {
+      await this.notifyFeedbackRecipient(verticalOwner, project, feedback, 'VERTICAL_OWNER');
+    }
+
+    // Notify marketing admin
+    if (marketingAdmin) {
+      await this.notifyFeedbackRecipient(marketingAdmin, project, feedback, 'MARKETING_ADMIN');
+    }
+
+    return feedback;
+  }
+
+  /**
+   * Process feedback content through AI to structure it properly
+   */
+  private async processFeedbackWithAI(
+    project: Project,
+    type: AIFeedbackType,
+    content: string,
+  ): Promise<string> {
+    const systemPrompt = `Você é um assistente de IA especializado em marketing para a Azul Linhas Aéreas.
+    
+    REGRAS OBRIGATÓRIAS:
+    1. NÃO CRIE IDEIAS DO ZERO - Apenas analise e estruture o feedback
+    2. LINGUAGEM SEMPRE FORMAL - Português brasileiro formal corporativo
+    3. NENHUMA INFORMAÇÃO PESSOAL - Sem nomes, e-mails, cargos específicos
+
+    TAREFA: Estruture o feedback do analista em formato adequado para envio ao dono da vertical e admin de marketing.
+
+    ${type === AIFeedbackType.POSITIVE 
+      ? `FEEDBACK POSITIVO - Deve conter:
+        - Como o marketing pode ajudar a desenvolver este projeto
+        - Sugestões de estratégias de marketing
+        - Canais recomendados
+        - Público-alvo para campanhas
+        - Métricas de sucesso sugeridas`
+      : `FEEDBACK NEGATIVO - Deve conter:
+        - Motivo detalhado de ser uma má ideia
+        - Riscos identificados
+        - Pontos de falha na proposta
+        - Sugestões de melhoria (se aplicável) ou motivo para rejeição`}
+
+    Projeto analisado: ${project.title} (${project.centralIdea})
+    Vertical: ${project.vertical}
+    Feedback do analista: ${content}`;
+
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: 'Processe este feedback conforme as regras acima.' },
+    ];
+
+    const response = await this.callOpenAI(messages);
+    return response.message;
+  }
+
+  /**
+   * Send notification to feedback recipient (vertical owner or marketing admin)
+   */
+  private async notifyFeedbackRecipient(
+    recipient: User,
+    project: Project,
+    feedback: AIFeedback,
+    recipientType: 'VERTICAL_OWNER' | 'MARKETING_ADMIN',
+  ): Promise<void> {
+    // Create AI conversation for this feedback notification
+    const conversation = this.conversationRepository.create({
+      userId: recipient.id,
+      projectId: project.id,
+      title: `Feedback IA: ${project.title} - ${recipientType === 'VERTICAL_OWNER' ? 'Dono da Vertical' : 'Admin Marketing'}`,
+    });
+    await this.conversationRepository.save(conversation);
+
+    // Create system message with AI processed feedback
+    const message = this.messageRepository.create({
+      conversationId: conversation.id,
+      userId: recipient.id,
+      role: 'assistant',
+      content: `
+Feedback de Análise IA - ${project.title}
+
+TIPO: ${feedback.type === AIFeedbackType.POSITIVE ? 'POSITIVO' : 'NEGATIVO'}
+DESTINATÁRIO: ${recipientType === 'VERTICAL_OWNER' ? 'Responsável pela Vertical' : 'Administrador de Marketing'}
+
+--- CONTEÚDO PROCESSADO PELA IA ---
+${feedback.aiProcessedContent}
+
+--- FEEDBACK ORIGINAL DO ANALISTA ---
+${feedback.content}
+
+---
+Projeto: ${project.title}
+Vertical: ${project.vertical}
+Analista: ${feedback.analystId}
+Data: ${new Date().toLocaleString('pt-BR')}
+      `.trim(),
+      metadata: { 
+        type: 'feedback_notification', 
+        feedbackId: feedback.id,
+        recipientType 
+      },
+    });
+    await this.messageRepository.save(message);
+  }
+
+  /**
+   * Get feedback history for a project
+   */
+  async getProjectFeedback(projectId: string): Promise<AIFeedback[]> {
+    return this.feedbackRepository.find({
+      where: { projectId },
+      order: { createdAt: 'DESC' },
+      relations: ['analyst'],
+    });
+  }
+
+  /**
+   * Get feedback notifications for a user
+   */
+  async getUserFeedbackNotifications(userId: string): Promise<AIMessage[]> {
+    const conversations = await this.conversationRepository.find({
+      where: { userId },
+      relations: ['messages'],
+    });
+    
+    const feedbackMessages: AIMessage[] = [];
+    for (const conv of conversations) {
+      for (const msg of conv.messages) {
+        if (msg.metadata?.type === 'feedback_notification') {
+          feedbackMessages.push(msg);
+        }
+      }
+    }
+    
+    return feedbackMessages.sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
   }
 
   private async getConversationHistory(conversationId: string, limit: number): Promise<AIMessage[]> {
