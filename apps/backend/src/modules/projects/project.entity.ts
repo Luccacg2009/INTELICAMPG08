@@ -10,10 +10,10 @@ export class Project {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ length: 200 })
+  @Column({ type: 'varchar', length: 200 })
   title: string;
 
-  @Column('text')
+  @Column({ type: 'text' })
   description: string;
 
   @Column({ name: 'central_idea', type: 'text' })
@@ -25,7 +25,7 @@ export class Project {
   @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
   budget: number;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', length: 50, nullable: true })
   timeline: string;
 
   @Column({ type: 'enum', enum: ProjectPriority, default: ProjectPriority.MEDIUM })
@@ -37,26 +37,26 @@ export class Project {
   @Column({ type: 'enum', enum: UserVertical })
   vertical: UserVertical;
 
-  @Column({ name: 'author_id' })
+  @Column({ name: 'author_id', type: 'uuid' })
   authorId: string;
 
   @ManyToOne(() => User, user => user.projects)
   @JoinColumn({ name: 'author_id' })
   author: User;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   reason: string;
 
-  @Column({ name: 'launch_location', nullable: true })
+  @Column({ name: 'launch_location', type: 'varchar', length: 200, nullable: true })
   launchLocation: string;
 
-  @Column({ name: 'ai_summary', nullable: true })
+  @Column({ name: 'ai_summary', type: 'text', nullable: true })
   aiSummary: string;
 
-  @Column({ name: 'ai_analysis', nullable: true })
+  @Column({ name: 'ai_analysis', type: 'text', nullable: true })
   aiAnalysis: string;
 
-  @Column({ name: 'pdf_url', nullable: true })
+  @Column({ name: 'pdf_url', type: 'varchar', length: 500, nullable: true })
   pdfUrl: string;
 
   @CreateDateColumn({ name: 'created_at' })

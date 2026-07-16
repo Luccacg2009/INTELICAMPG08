@@ -13,13 +13,13 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column({ type: 'varchar', length: 255, unique: true })
   email: string;
 
-  @Column({ name: 'password_hash', select: false })
+  @Column({ name: 'password_hash', type: 'varchar', length: 255, select: false })
   passwordHash: string;
 
-  @Column()
+  @Column({ type: 'varchar', length: 200 })
   name: string;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.WORKER })
@@ -28,16 +28,16 @@ export class User {
   @Column({ type: 'enum', enum: UserVertical, default: UserVertical.MARKETING, nullable: true })
   vertical: UserVertical;
 
-  @Column({ name: 'avatar_url', nullable: true })
+  @Column({ name: 'avatar_url', type: 'varchar', length: 500, nullable: true })
   avatarUrl: string;
 
-  @Column({ name: 'is_active', default: true })
+  @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 
-  @Column({ name: 'last_login_at', nullable: true })
+  @Column({ name: 'last_login_at', type: 'timestamp', nullable: true })
   lastLoginAt: Date;
 
-  @Column({ name: 'must_change_password', default: true })
+  @Column({ name: 'must_change_password', type: 'boolean', default: true })
   mustChangePassword: boolean;
 
   @CreateDateColumn({ name: 'created_at' })

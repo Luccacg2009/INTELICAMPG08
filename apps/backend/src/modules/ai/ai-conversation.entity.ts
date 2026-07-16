@@ -10,24 +10,24 @@ export class AIConversation {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'project_id', nullable: true })
+  @Column({ name: 'project_id', type: 'uuid', nullable: true })
   projectId: string;
 
   @ManyToOne(() => Project)
   @JoinColumn({ name: 'project_id' })
   project: Project;
 
-  @Column({ name: 'user_id' })
+  @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
   @ManyToOne(() => User, user => user.aiConversations)
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', length: 200, nullable: true })
   title: string;
 
-  @Column({ default: true })
+  @Column({ default: true, type: 'boolean' })
   isActive: boolean;
 
   @CreateDateColumn({ name: 'created_at' })

@@ -9,21 +9,21 @@ export class AIMessage {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'conversation_id' })
+  @Column({ name: 'conversation_id', type: 'uuid' })
   conversationId: string;
 
   @ManyToOne(() => AIConversation, conversation => conversation.messages, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'conversation_id' })
   conversation: AIConversation;
 
-  @Column({ name: 'user_id' })
+  @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column() // 'user' | 'assistant'
+  @Column({ type: 'varchar', length: 20 })
   role: string;
 
   @Column('text')
