@@ -42,7 +42,6 @@ services:
     volumes:
       - ./apps/backend:/app
       - /app/node_modules
-    command: sh -c "npx prisma migrate deploy && npm run dev"
 
   frontend:
     build:

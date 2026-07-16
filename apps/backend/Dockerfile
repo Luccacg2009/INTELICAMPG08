@@ -6,15 +6,15 @@ RUN npm install -g pnpm turbo
 
 COPY package.json pnpm-lock.yaml* ./
 
-COPY apps/backend/package.json ./apps/backend/
-COPY apps/backend/tsconfig.json ./apps/backend/
+COPY package.json ./
+COPY tsconfig.json ./
 
-RUN pnpm install --filter=@marketing-azul/backend --filter=@marketing-azul/backend...
+RUN pnpm install
 
-COPY apps/backend ./apps/backend
+COPY . .
 
-WORKDIR /app/apps/backend
+RUN pnpm prisma generate
 
 EXPOSE 3000
 
-CMD ["npm", "run", "dev"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npm run dev"]
