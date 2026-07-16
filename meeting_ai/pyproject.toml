@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "meeting-ai"
+version = "1.0.0"
+description = "Meeting AI - Grava, transcreve e resume reuniões com IA"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "faster-whisper>=1.0.0",
+    "numpy>=1.24.0",
+    "fpdf2>=2.7.0",
+    "python-dotenv>=1.0.0",
+    "requests>=2.31.0",
+    "ollama>=0.1.0",
+    "rich>=13.0.0",
+    "fastapi>=0.109.0",
+    "uvicorn>=0.27.0",
+    "pydantic>=2.5.0",
+]
+
+[project.optional-dependencies]
+audio = ["pyaudio>=0.2.13"]
+
+[project.scripts]
+meeting-ai = "meeting_ai.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["meeting_ai*"]

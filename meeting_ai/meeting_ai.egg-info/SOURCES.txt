@@ -1,0 +1,8 @@
+README.md
+pyproject.toml
+meeting_ai.egg-info/PKG-INFO
+meeting_ai.egg-info/SOURCES.txt
+meeting_ai.egg-info/dependency_links.txt
+meeting_ai.egg-info/entry_points.txt
+meeting_ai.egg-info/requires.txt
+meeting_ai.egg-info/top_level.txt
