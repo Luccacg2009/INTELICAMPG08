@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcryptjs';
 import { Project } from './project.entity';
 import { ProjectEvaluation } from './project-evaluation.entity';
 import { User } from '../users/user.entity';
@@ -26,10 +27,13 @@ export class ProjectsService {
   ) {}
 
   async create(dto: CreateProjectDto, authorId: string): Promise<Project> {
+    const accessPasswordHash = await bcrypt.hash(dto.accessPassword, 12);
+    const { accessPassword, ...restDto } = dto;
     const project = this.projectRepository.create({
-      ...dto,
+      ...restDto,
       authorId,
       status: ProjectStatus.DRAFT,
+      accessPasswordHash,
     });
     return this.projectRepository.save(project);
   }
@@ -88,6 +92,11 @@ export class ProjectsService {
 
     if (project.status !== ProjectStatus.DRAFT && userRole !== UserRole.ADMIN) {
       throw new ForbiddenException('Só é possível editar projetos em rascunho');
+    }
+
+    if (dto.accessPassword) {
+      project.accessPasswordHash = await bcrypt.hash(dto.accessPassword, 12);
+      delete dto.accessPassword;
     }
 
     Object.assign(project, dto);

@@ -72,6 +72,8 @@ export function ProjectsList() {
     description: '',
     centralIdea: '',
     targetAudience: '',
+    accessPassword: '',
+    reason: '',
     budget: '',
     timeline: '',
     priority: 'MEDIUM' as ProjectPriority,
@@ -112,6 +114,8 @@ export function ProjectsList() {
       description: '',
       centralIdea: '',
       targetAudience: '',
+      accessPassword: '',
+      reason: '',
       budget: '',
       timeline: '',
       priority: 'MEDIUM',
@@ -127,6 +131,8 @@ export function ProjectsList() {
       description: project.description,
       centralIdea: project.centralIdea,
       targetAudience: project.targetAudience,
+      accessPassword: '',
+      reason: project.reason || '',
       budget: project.budget?.toString() || '',
       timeline: project.timeline || '',
       priority: project.priority,
@@ -144,6 +150,8 @@ export function ProjectsList() {
         description: formData.description,
         centralIdea: formData.centralIdea,
         targetAudience: formData.targetAudience,
+        accessPassword: formData.accessPassword,
+        reason: formData.reason,
         budget: formData.budget ? parseFloat(formData.budget) : undefined,
         timeline: formData.timeline || undefined,
         priority: formData.priority,
@@ -469,6 +477,24 @@ export function ProjectsList() {
               placeholder="Para quem este projeto é direcionado?"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Senha de Acesso *</label>
+            <Input
+              type="password"
+              value={formData.accessPassword}
+              onChange={(e) => setFormData({ ...formData, accessPassword: e.target.value })}
+              required
+              placeholder="Senha para acessar o projeto"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Motivo (Opcional)</label>
+            <Input
+              value={formData.reason}
+              onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+              placeholder="Motivo da vertical estar desenvolvendo o projeto"
+            />
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Orçamento</label>
@@ -517,5 +543,3 @@ export function ProjectsList() {
     </div>
   );
 }
-
-import { Download } from 'lucide-react';

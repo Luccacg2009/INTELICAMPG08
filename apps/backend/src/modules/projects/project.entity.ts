@@ -50,6 +50,9 @@ export class Project {
   @Column({ name: 'launch_location', type: 'varchar', length: 200, nullable: true })
   launchLocation: string;
 
+  @Column({ name: 'access_password_hash', type: 'varchar', length: 255, nullable: true, select: false })
+  accessPasswordHash: string;
+
   @Column({ name: 'ai_summary', type: 'text', nullable: true })
   aiSummary: string;
 

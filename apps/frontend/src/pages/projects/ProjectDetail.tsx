@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Clock, User, Tag, AlertCircle, CheckCircle, XCircle, FileText, Edit, Trash2, Send, Sparkles, Download, Loader2, ChevronLeft, ChevronRight, ArrowRight, ArrowLeft, MessageSquare, DollarSign, Calendar } from 'lucide-react';
+import { ArrowLeft, Clock, User, Tag, AlertCircle, CheckCircle, XCircle, FileText, Edit, Trash2, Send, Sparkles, Download, Loader2, ChevronLeft, ChevronRight, ArrowRight, MessageSquare, DollarSign, Calendar, Archive } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -238,7 +238,8 @@ export function ProjectDetail() {
             </CardHeader>
             <CardContent>
               <p className="text-gray-700 whitespace-pre-wrap">{project.centralIdea || 'Não informada'}</p>
-            </CardContent          </Card>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>
@@ -246,7 +247,8 @@ export function ProjectDetail() {
             </CardHeader>
             <CardContent>
               <p className="text-gray-700 whitespace-pre-wrap">{project.targetAudience || 'Não informado'}</p>
-            </CardContent          </Card>
+            </CardContent>
+          </Card>
 
           {project.aiSummary && (
             <Card className="border-l-4 border-blue-500">
@@ -255,7 +257,8 @@ export function ProjectDetail() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 whitespace-pre-wrap">{project.aiSummary}</p>
-              </CardContent          </Card>
+              </CardContent>
+            </Card>
           )}
 
           {project.aiAnalysis && (
@@ -265,7 +268,8 @@ export function ProjectDetail() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 whitespace-pre-wrap">{project.aiAnalysis}</p>
-              </CardContent          </Card>
+              </CardContent>
+            </Card>
           )}
 
           <Card>
@@ -301,7 +305,8 @@ export function ProjectDetail() {
                   )}
                 </>
               )}
-            </CardContent          </Card>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="space-y-6">
@@ -346,7 +351,8 @@ export function ProjectDetail() {
                 <span className="text-gray-500">Autor</span>
                 <span className="font-medium">{project.author?.name || 'Desconhecido'}</span>
               </div>
-            </CardContent          </Card>
+            </CardContent>
+          </Card>
 
           {project.evaluations && project.evaluations.length > 0 && (
             <Card>
@@ -354,19 +360,19 @@ export function ProjectDetail() {
                 <CardTitle>Avaliações</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {project.evaluations.map(eval => (
-                  <div key={eval.id} className="p-4 bg-gray-50 rounded-lg">
+                {project.evaluations.map(evaluation => (
+                  <div key={evaluation.id} className="p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-3 mb-2">
-                      <Badge variant={eval.status === 'APPROVED' ? 'success' : eval.status === 'REJECTED' ? 'danger' : eval.status === 'NEEDS_REVISION' ? 'warning' : 'default'}>
-                        {eval.status === 'APPROVED' ? 'Aprovado' : eval.status === 'REJECTED' ? 'Rejeitado' : eval.status === 'NEEDS_REVISION' ? 'Revisão Necessária' : 'Pendente'}
+                      <Badge variant={evaluation.status === 'APPROVED' ? 'success' : evaluation.status === 'REJECTED' ? 'danger' : evaluation.status === 'NEEDS_REVISION' ? 'warning' : 'default'}>
+                        {evaluation.status === 'APPROVED' ? 'Aprovado' : evaluation.status === 'REJECTED' ? 'Rejeitado' : evaluation.status === 'NEEDS_REVISION' ? 'Revisão Necessária' : 'Pendente'}
                       </Badge>
-                      <span className="text-sm text-gray-500">Por {eval.evaluator?.name} em {new Date(eval.reviewedAt || eval.createdAt).toLocaleDateString('pt-BR')}</span>
+                      <span className="text-sm text-gray-500">Por {evaluation.evaluator?.name} em {new Date(evaluation.reviewedAt || evaluation.createdAt).toLocaleDateString('pt-BR')}</span>
                     </div>
-                    {eval.strengths && <p className="text-sm text-green-700 mb-1"><strong>Pontos fortes:</strong> {eval.strengths}</p>}
-                    {eval.weaknesses && <p className="text-sm text-red-700 mb-1"><strong>Pontos fracos:</strong> {eval.weaknesses}</p>}
-                    {eval.suggestions && <p className="text-sm text-blue-700 mb-1"><strong>Sugestões:</strong> {eval.suggestions}</p>}
-                    {eval.recommendation && <p className="text-sm text-purple-700"><strong>Recomendação:</strong> {eval.recommendation}</p>}
-                    {eval.score && <p className="text-sm text-gray-700"><strong>Score:</strong> {eval.score}/100</p>}
+                    {evaluation.strengths && <p className="text-sm text-green-700 mb-1"><strong>Pontos fortes:</strong> {evaluation.strengths}</p>}
+                    {evaluation.weaknesses && <p className="text-sm text-red-700 mb-1"><strong>Pontos fracos:</strong> {evaluation.weaknesses}</p>}
+                    {evaluation.suggestions && <p className="text-sm text-blue-700 mb-1"><strong>Sugestões:</strong> {evaluation.suggestions}</p>}
+                    {evaluation.recommendation && <p className="text-sm text-purple-700"><strong>Recomendação:</strong> {evaluation.recommendation}</p>}
+                    {evaluation.score && <p className="text-sm text-gray-700"><strong>Score:</strong> {evaluation.score}/100</p>}
                   </div>
                 ))}
               </CardContent>

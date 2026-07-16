@@ -24,6 +24,12 @@ export class CreateProjectDto {
   @MinLength(5)
   targetAudience: string;
 
+  @ApiProperty({ example: 'azul123', description: 'Senha de acesso ao projeto' })
+  @IsString()
+  @MinLength(4)
+  @MaxLength(50)
+  accessPassword: string;
+
   @ApiPropertyOptional({ example: 50000 })
   @IsOptional()
   @IsNumber()
@@ -43,6 +49,12 @@ export class CreateProjectDto {
   @ApiProperty({ enum: UserVertical, example: UserVertical.MARKETING })
   @IsEnum(UserVertical)
   vertical: UserVertical;
+
+  @ApiPropertyOptional({ example: 'Motivo do desenvolvimento do projeto' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  reason?: string;
 }
 
 export class UpdateProjectDto {
@@ -70,6 +82,12 @@ export class UpdateProjectDto {
   @IsString()
   @MinLength(5)
   targetAudience?: string;
+
+  @ApiPropertyOptional({ example: 'nova-senha123' })
+  @IsOptional()
+  @IsString()
+  @MinLength(4)
+  accessPassword?: string;
 
   @ApiPropertyOptional({ example: 50000 })
   @IsOptional()

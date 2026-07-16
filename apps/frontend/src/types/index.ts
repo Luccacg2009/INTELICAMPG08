@@ -104,6 +104,50 @@ export interface Comment {
   updatedAt: string;
 }
 
+export type ProjectStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'IN_DEVELOPMENT' | 'LAUNCHED' | 'ARCHIVED';
+export type ProjectPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type EvaluationStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'NEEDS_REVISION';
+
+export interface Project {
+  id: string;
+  title: string;
+  description: string;
+  centralIdea: string;
+  targetAudience: string;
+  budget?: number;
+  timeline?: string;
+  priority: ProjectPriority;
+  status: ProjectStatus;
+  vertical: UserVertical;
+  authorId: string;
+  author?: Pick<User, 'id' | 'name' | 'vertical' | 'email' | 'role'>;
+  reason?: string;
+  launchLocation?: string;
+  aiSummary?: string;
+  aiAnalysis?: string;
+  pdfUrl?: string;
+  accessPasswordHash?: string;
+  createdAt: string;
+  updatedAt: string;
+  evaluations?: ProjectEvaluation[];
+}
+
+export interface ProjectEvaluation {
+  id: string;
+  projectId: string;
+  evaluatorId: string;
+  evaluator?: Pick<User, 'id' | 'name'>;
+  status: EvaluationStatus;
+  strengths?: string;
+  weaknesses?: string;
+  suggestions?: string;
+  recommendation?: string;
+  score: number;
+  reviewedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface VerticalConfig {
   id: string;
   vertical: string;
