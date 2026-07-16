@@ -34,7 +34,6 @@ const priorityLabels: Record<ProjectPriority, string> = {
   LOW: 'Baixa',
   MEDIUM: 'Média',
   HIGH: 'Alta',
-  CRITICAL: 'Crítica',
 };
 
 const verticalLabels: Record<UserVertical, string> = {

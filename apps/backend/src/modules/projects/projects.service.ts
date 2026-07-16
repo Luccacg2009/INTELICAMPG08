@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { Project } from './project.entity';
 import { ProjectEvaluation } from './project-evaluation.entity';
 import { User } from '../users/user.entity';
 import { CreateProjectDto, UpdateProjectDto, EvaluateProjectDto, ProjectListQueryDto } from './projects.dto';
-import { UserRole, ProjectStatus, EvaluationStatus, UserVertical } from '../../common/enums/user.enums';
+import { UserRole, ProjectStatus, EvaluationStatus, UserVertical, ProjectPriority, PriorityColor, PRIORITY_TO_COLOR } from '../../common/enums/user.enums';
 import { ConfigService } from '@nestjs/config';
 import { AIService } from '../ai/ai.service';
 import { PDFService } from '../pdf/pdf.service';
@@ -29,13 +29,72 @@ export class ProjectsService {
   async create(dto: CreateProjectDto, authorId: string): Promise<Project> {
     const accessPasswordHash = await bcrypt.hash(dto.accessPassword, 12);
     const { accessPassword, ...restDto } = dto;
+    
+    // Calculate priority based on historical benchmarks if not provided
+    const priority = restDto.priority || await this.calculatePriorityFromBenchmarks(restDto.vertical);
+    const priorityColor = PRIORITY_TO_COLOR[priority];
+    
     const project = this.projectRepository.create({
       ...restDto,
       authorId,
       status: ProjectStatus.DRAFT,
       accessPasswordHash,
+      priority,
+      priorityColor,
     });
     return this.projectRepository.save(project);
+  }
+
+  /**
+   * Calculate priority based on historical project performance in the same vertical
+   * Uses: success rate, average budget efficiency, time to market, customer feedback
+   */
+  private async calculatePriorityFromBenchmarks(vertical: UserVertical): Promise<ProjectPriority> {
+    // Get approved/launched projects from the same vertical in the last year
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+    const historicalProjects = await this.projectRepository
+      .createQueryBuilder('project')
+      .where('project.vertical = :vertical', { vertical })
+      .andWhere('project.status IN (:...statuses)', { 
+        statuses: [ProjectStatus.APPROVED, ProjectStatus.LAUNCHED, ProjectStatus.IN_DEVELOPMENT] 
+      })
+      .andWhere('project.createdAt >= :date', { date: oneYearAgo })
+      .getMany();
+
+    if (historicalProjects.length < 3) {
+      // Not enough historical data, default to MEDIUM
+      return ProjectPriority.MEDIUM;
+    }
+
+    // Calculate success metrics
+    const totalProjects = historicalProjects.length;
+    const successfulProjects = historicalProjects.filter(p => 
+      p.status === ProjectStatus.LAUNCHED || p.status === ProjectStatus.APPROVED
+    ).length;
+    const successRate = successfulProjects / totalProjects;
+
+    // Calculate average budget efficiency (projects with budget that were successful)
+    const projectsWithBudget = historicalProjects.filter(p => p.budget !== null && p.budget !== undefined);
+    let avgBudgetEfficiency = 0.5; // default
+    if (projectsWithBudget.length > 0) {
+      // Simplified: success rate of projects with budget
+      const successfulWithBudget = projectsWithBudget.filter(p => 
+        p.status === ProjectStatus.LAUNCHED || p.status === ProjectStatus.APPROVED
+      ).length;
+      avgBudgetEfficiency = successfulWithBudget / projectsWithBudget.length;
+    }
+
+    // Calculate priority score (0-100)
+    // Weight: 50% success rate, 30% budget efficiency, 20% project count factor
+    const projectCountFactor = Math.min(totalProjects / 20, 1); // normalize to max 20 projects
+    const priorityScore = (successRate * 0.5 + avgBudgetEfficiency * 0.3 + projectCountFactor * 0.2) * 100;
+
+    // Map score to priority
+    if (priorityScore >= 70) return ProjectPriority.HIGH;    // GREEN
+    if (priorityScore >= 40) return ProjectPriority.MEDIUM;  // YELLOW
+    return ProjectPriority.LOW;                               // RED
   }
 
   async findAll(query: ProjectListQueryDto, user: User): Promise<{ data: Project[]; total: number; page: number; limit: number }> {

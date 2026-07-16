@@ -105,7 +105,8 @@ export interface Comment {
 }
 
 export type ProjectStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'IN_DEVELOPMENT' | 'LAUNCHED' | 'ARCHIVED';
-export type ProjectPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type ProjectPriority = 'LOW' | 'MEDIUM' | 'HIGH';
+export type ProjectPriorityColor = 'GREEN' | 'YELLOW' | 'RED';
 export type EvaluationStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'NEEDS_REVISION';
 
 export interface Project {
@@ -117,6 +118,7 @@ export interface Project {
   budget?: number;
   timeline?: string;
   priority: ProjectPriority;
+  priorityColor: ProjectPriorityColor;
   status: ProjectStatus;
   vertical: UserVertical;
   authorId: string;

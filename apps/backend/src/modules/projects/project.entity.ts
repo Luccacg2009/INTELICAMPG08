@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 import { User } from '../users/user.entity';
-import { UserVertical, ProjectStatus, ProjectPriority } from '../../common/enums/user.enums';
+import { UserVertical, ProjectStatus, ProjectPriority, PriorityColor } from '../../common/enums/user.enums';
 import { ProjectEvaluation } from './project-evaluation.entity';
 
 @Entity('projects')
@@ -30,6 +30,9 @@ export class Project {
 
   @Column({ type: 'enum', enum: ProjectPriority, default: ProjectPriority.MEDIUM })
   priority: ProjectPriority;
+
+  @Column({ type: 'enum', enum: PriorityColor, default: PriorityColor.YELLOW, name: 'priority_color' })
+  priorityColor: PriorityColor;
 
   @Column({ type: 'enum', enum: ProjectStatus, default: ProjectStatus.DRAFT })
   status: ProjectStatus;

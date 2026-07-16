@@ -6,7 +6,7 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Modal } from '../../components/ui/Modal';
 import { api } from '../../services/api';
-import { Project, ProjectStatus, ProjectPriority, UserVertical } from '../../types';
+import { Project, ProjectStatus, ProjectPriority, ProjectPriorityColor, UserVertical } from '../../types';
 import { toast } from 'react-hot-toast';
 
 const statusLabels: Record<ProjectStatus, string> = {
@@ -33,7 +33,24 @@ const priorityLabels: Record<ProjectPriority, string> = {
   LOW: 'Baixa',
   MEDIUM: 'Média',
   HIGH: 'Alta',
-  CRITICAL: 'Crítica',
+};
+
+const priorityColorLabels: Record<ProjectPriorityColor, string> = {
+  GREEN: 'Verde (Alta)',
+  YELLOW: 'Amarelo (Média)',
+  RED: 'Vermelho (Baixa)',
+};
+
+const priorityColorMap: Record<ProjectPriority, ProjectPriorityColor> = {
+  HIGH: 'GREEN',
+  MEDIUM: 'YELLOW',
+  LOW: 'RED',
+};
+
+const priorityColorVariants: Record<ProjectPriorityColor, 'success' | 'warning' | 'danger'> = {
+  GREEN: 'success',
+  YELLOW: 'warning',
+  RED: 'danger',
 };
 
 const verticalLabels: Record<UserVertical, string> = {
@@ -319,7 +336,9 @@ export function ProjectsList() {
                           <Badge variant="info">{verticalLabels[project.vertical] || project.vertical}</Badge>
                         </td>
                         <td className="px-6 py-4">
-                          <Badge variant="default">{priorityLabels[project.priority] || project.priority}</Badge>
+                          <Badge variant={priorityColorVariants[(project.priorityColor as ProjectPriorityColor) || priorityColorMap[project.priority]]}>
+                            {priorityLabels[project.priority] || project.priority}
+                          </Badge>
                         </td>
                         <td className="px-6 py-4">
                           <Badge variant={statusColors[project.status]}>
@@ -517,17 +536,18 @@ export function ProjectsList() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Prioridade</label>
-              <select
-                value={formData.priority}
-                onChange={(e) => setFormData({ ...formData, priority: e.target.value as ProjectPriority })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="LOW">Baixa</option>
-                <option value="MEDIUM">Média</option>
-                <option value="HIGH">Alta</option>
-                <option value="CRITICAL">Crítica</option>
-              </select>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Prioridade (Calculada automaticamente)</label>
+              <div className="flex items-center gap-3 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                <Badge variant={priorityColorVariants[priorityColorMap[formData.priority as ProjectPriority] || 'YELLOW']}>
+                  {priorityColorLabels[priorityColorMap[formData.priority as ProjectPriority] || 'YELLOW']}
+                </Badge>
+                <span className="text-sm text-gray-600">
+                  {priorityLabels[formData.priority as ProjectPriority] || 'Média'}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Baseada em benchmarks históricos da vertical selecionada
+              </p>
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">

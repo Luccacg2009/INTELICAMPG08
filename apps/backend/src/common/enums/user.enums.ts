@@ -31,7 +31,12 @@ export enum ProjectPriority {
   LOW = 'LOW',
   MEDIUM = 'MEDIUM',
   HIGH = 'HIGH',
-  CRITICAL = 'CRITICAL',
+}
+
+export enum PriorityColor {
+  GREEN = 'GREEN',
+  YELLOW = 'YELLOW',
+  RED = 'RED',
 }
 
 export const VERTICAL_LABELS: Record<UserVertical, string> = {
@@ -67,7 +72,18 @@ export const PROJECT_PRIORITY_LABELS: Record<ProjectPriority, string> = {
   [ProjectPriority.LOW]: 'Baixa',
   [ProjectPriority.MEDIUM]: 'Média',
   [ProjectPriority.HIGH]: 'Alta',
-  [ProjectPriority.CRITICAL]: 'Crítica',
+};
+
+export const PRIORITY_COLOR_LABELS: Record<PriorityColor, string> = {
+  [PriorityColor.GREEN]: 'Verde (Alta prioridade)',
+  [PriorityColor.YELLOW]: 'Amarelo (Média prioridade)',
+  [PriorityColor.RED]: 'Vermelho (Baixa prioridade)',
+};
+
+export const PRIORITY_TO_COLOR: Record<ProjectPriority, PriorityColor> = {
+  [ProjectPriority.HIGH]: PriorityColor.GREEN,
+  [ProjectPriority.MEDIUM]: PriorityColor.YELLOW,
+  [ProjectPriority.LOW]: PriorityColor.RED,
 };
 
 export enum EvaluationStatus {

@@ -1,6 +1,6 @@
 import { IsString, IsOptional, IsNumber, IsEnum, Min, Max, MinLength, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ProjectStatus, ProjectPriority, UserVertical, EvaluationStatus } from '../../common/enums/user.enums';
+import { ProjectStatus, ProjectPriority, UserVertical, EvaluationStatus, PriorityColor } from '../../common/enums/user.enums';
 
 export class CreateProjectDto {
   @ApiProperty({ example: 'Campanha de Verão 2024' })
@@ -41,10 +41,15 @@ export class CreateProjectDto {
   @IsString()
   timeline?: string;
 
-  @ApiPropertyOptional({ enum: ProjectPriority, example: ProjectPriority.HIGH })
+  @ApiPropertyOptional({ enum: ProjectPriority, example: ProjectPriority.HIGH, description: 'Prioridade calculada automaticamente baseada em benchmarks históricos' })
   @IsOptional()
   @IsEnum(ProjectPriority)
   priority?: ProjectPriority;
+
+  @ApiPropertyOptional({ enum: PriorityColor, example: PriorityColor.YELLOW, description: 'Cor da prioridade (Verde=Alta, Amarelo=Média, Vermelho=Baixa)' })
+  @IsOptional()
+  @IsEnum(PriorityColor)
+  priorityColor?: PriorityColor;
 
   @ApiProperty({ enum: UserVertical, example: UserVertical.MARKETING })
   @IsEnum(UserVertical)
@@ -104,6 +109,11 @@ export class UpdateProjectDto {
   @IsOptional()
   @IsEnum(ProjectPriority)
   priority?: ProjectPriority;
+
+  @ApiPropertyOptional({ enum: PriorityColor, example: PriorityColor.YELLOW })
+  @IsOptional()
+  @IsEnum(PriorityColor)
+  priorityColor?: PriorityColor;
 
   @ApiPropertyOptional({ enum: ProjectStatus, example: ProjectStatus.DRAFT })
   @IsOptional()
