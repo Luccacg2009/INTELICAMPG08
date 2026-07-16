@@ -41,7 +41,7 @@ function App() {
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/ideas" element={<ProtectedRoute allowedRoles={['ANALYST', 'ADMIN']}><IdeasList /></ProtectedRoute>} />
           <Route path="/ideas/:id" element={<ProtectedRoute allowedRoles={['ANALYST', 'ADMIN']}><IdeaDetail /></ProtectedRoute>} />
-          <Route path="/my-ideas" element={<ProtectedRoute allowedRoles={['PARTICIPANT', 'ANALYST', 'ADMIN']}><MyIdeas /></ProtectedRoute>} />
+          <Route path="/my-ideas" element={<ProtectedRoute allowedRoles={['WORKER', 'ANALYST', 'ADMIN']}><MyIdeas /></ProtectedRoute>} />
           {/* Admin Routes */}
           <Route path="/admin" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['ADMIN']}><UserManagement /></ProtectedRoute>} />
@@ -56,8 +56,8 @@ function App() {
           {/* Verticals Routes */}
           <Route path="/verticals" element={<ProtectedRoute allowedRoles={['ANALYST', 'ADMIN']}><VerticalsManagement /></ProtectedRoute>} />
           {/* Post-Mortem Routes */}
-          <Route path="/post-mortems" element={<ProtectedRoute allowedRoles={['PARTICIPANT', 'ANALYST', 'ADMIN']}><PostMortemsList /></ProtectedRoute>} />
-          <Route path="/post-mortems/:id" element={<ProtectedRoute allowedRoles={['PARTICIPANT', 'ANALYST', 'ADMIN']}><PostMortemDetail /></ProtectedRoute>} />
+          <Route path="/post-mortems" element={<ProtectedRoute allowedRoles={['WORKER', 'ANALYST', 'ADMIN']}><PostMortemsList /></ProtectedRoute>} />
+          <Route path="/post-mortems/:id" element={<ProtectedRoute allowedRoles={['WORKER', 'ANALYST', 'ADMIN']}><PostMortemDetail /></ProtectedRoute>} />
           {/* Projects Routes */}
           <Route path="/projects" element={<ProtectedRoute allowedRoles={['WORKER', 'ANALYST', 'ADMIN']}><ProjectsList /></ProtectedRoute>} />
           <Route path="/projects/:id" element={<ProtectedRoute allowedRoles={['WORKER', 'ANALYST', 'ADMIN']}><ProjectDetail /></ProtectedRoute>} />

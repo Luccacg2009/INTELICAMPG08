@@ -1,36 +1,83 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuthStore } from '../../store/auth';
 import { api } from '../../services/api';
-import { Lightbulb, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Lightbulb, Eye, EyeOff, Loader2, Shield, LineChart, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
-  password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
+  password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
 
+const DEMO_ACCOUNTS = [
+  {
+    role: 'Administrador',
+    description: 'Marketing • acesso total',
+    email: 'admin@azul.com',
+    password: 'azul789',
+    icon: Shield,
+    classes: 'border-blue-200 hover:border-blue-400 hover:bg-blue-50 text-blue-700',
+    iconBg: 'bg-blue-100 text-blue-600',
+  },
+  {
+    role: 'Analista de Marketing',
+    description: 'Avalia ideias e envia feedback',
+    email: 'analista@azul.com',
+    password: 'azul456',
+    icon: LineChart,
+    classes: 'border-purple-200 hover:border-purple-400 hover:bg-purple-50 text-purple-700',
+    iconBg: 'bg-purple-100 text-purple-600',
+  },
+  {
+    role: 'Colaborador',
+    description: 'Submete ideias de projeto',
+    email: 'trabalhador@azul.com',
+    password: 'azul123',
+    icon: User,
+    classes: 'border-emerald-200 hover:border-emerald-400 hover:bg-emerald-50 text-emerald-700',
+    iconBg: 'bg-emerald-100 text-emerald-600',
+  },
+];
+
 export function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  const { setAuth, checkAuth } = useAuthStore();
+  const [quickLoading, setQuickLoading] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { setAuth } = useAuthStore();
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
   });
 
+  const doLogin = async (email: string, password: string) => {
+    const response = await api.post('/auth/login', { email, password });
+    const { user, accessToken, refreshToken } = response.data;
+    setAuth(user, accessToken, refreshToken);
+    toast.success(`Bem-vindo(a), ${user.name}!`);
+    navigate('/projects');
+  };
+
   const onSubmit = async (data: LoginForm) => {
     try {
-      const response = await api.post('/auth/login', data);
-      const { user, accessToken, refreshToken } = response.data;
-      setAuth(user, accessToken, refreshToken);
-      toast.success('Login realizado com sucesso!');
-      checkAuth();
+      await doLogin(data.email, data.password);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erro ao fazer login');
+    }
+  };
+
+  const quickLogin = async (email: string, password: string) => {
+    setQuickLoading(email);
+    try {
+      await doLogin(email, password);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Erro ao fazer login');
+    } finally {
+      setQuickLoading(null);
     }
   };
 
@@ -110,6 +157,37 @@ export function Login() {
               <span>Entrar</span>
             </button>
           </form>
+
+          <div className="mt-6 pt-6 border-t border-gray-100">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Acesso rápido (demo)</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+            <div className="space-y-2.5">
+              {DEMO_ACCOUNTS.map((acc) => {
+                const Icon = acc.icon;
+                const loading = quickLoading === acc.email;
+                return (
+                  <button
+                    key={acc.email}
+                    type="button"
+                    onClick={() => quickLogin(acc.email, acc.password)}
+                    disabled={quickLoading !== null || isSubmitting}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg border bg-white transition-colors text-left disabled:opacity-60 disabled:cursor-not-allowed ${acc.classes}`}
+                  >
+                    <span className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${acc.iconBg}`}>
+                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Icon className="w-5 h-5" />}
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-sm font-semibold">Entrar como {acc.role}</span>
+                      <span className="block text-xs text-gray-500 truncate">{acc.description}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           <div className="mt-6 text-center">
             <p className="text-gray-600">

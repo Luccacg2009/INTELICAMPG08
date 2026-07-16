@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -10,26 +9,9 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true, forbidNonWhitelisted: true }));
 
-  const config = new DocumentBuilder()
-    .setTitle('Marketing Azul API')
-    .setDescription('API para gestão de ideação de produtos com integração de marketing')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .addTag('auth', 'Autenticação e autorização')
-    .addTag('users', 'Gestão de usuários')
-    .addTag('ideas', 'Gestão de ideias de produtos')
-    .addTag('feedback', 'Feedback dos analistas')
-    .addTag('ai', 'Integração com IA')
-    .addTag('pdf', 'Geração de PDF')
-    .build();
-
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
-
   const port = process.env.PORT || 3000;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   console.log(`🚀 Marketing Azul API running on http://localhost:${port}`);
-  console.log(`📚 Swagger docs: http://localhost:${port}/api/docs`);
 }
 
 bootstrap();

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -13,7 +13,7 @@ const registerSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
   confirmPassword: z.string(),
-  role: z.enum(['PARTICIPANT', 'ANALYST']).optional(),
+  role: z.enum(['WORKER', 'ANALYST']).optional(),
   vertical: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Senhas não conferem',
@@ -25,6 +25,7 @@ type RegisterForm = z.infer<typeof registerSchema>;
 export function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate = useNavigate();
   const { setAuth } = useAuthStore();
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -38,12 +39,13 @@ export function Register() {
         name: data.name,
         email: data.email,
         password: data.password,
-        role: data.role || 'PARTICIPANT',
+        role: data.role || 'WORKER',
         vertical: data.vertical,
       });
       const { user, accessToken, refreshToken } = response.data;
       setAuth(user, accessToken, refreshToken);
       toast.success('Conta criada com sucesso!');
+      navigate('/projects');
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erro ao criar conta');
     }

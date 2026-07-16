@@ -2,19 +2,16 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-RUN npm install -g pnpm turbo
+RUN npm install -g pnpm
 
 COPY package.json pnpm-lock.yaml* ./
 
-COPY package.json ./
-COPY tsconfig.json ./
-
-RUN pnpm install
+RUN pnpm install --no-frozen-lockfile
 
 COPY . .
 
-RUN pnpm prisma generate
-
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma migrate deploy && npm run dev"]
+# TypeORM (synchronize) cria as tabelas no boot; o seed popula usuários padrão.
+# `|| true` evita derrubar o container se o seed já rodou (usuários já existem).
+CMD ["sh", "-c", "pnpm db:seed || true; pnpm dev"]

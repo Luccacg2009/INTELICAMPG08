@@ -16,7 +16,12 @@ export class UsersService {
   ) {}
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { email } });
+    // passwordHash tem `select: false`; addSelect garante que o login consiga comparar a senha.
+    return this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.passwordHash')
+      .where('user.email = :email', { email })
+      .getOne();
   }
 
   async findById(id: string): Promise<User | null> {

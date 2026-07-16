@@ -33,5 +33,5 @@ export const FEEDBACK_TYPE_LABELS: Record<string, string> = {
 export const ROLE_LABELS: Record<string, string> = {
   ADMIN: 'Administrador',
   ANALYST: 'Analista',
-  PARTICIPANT: 'Participante',
+  WORKER: 'Colaborador',
 };

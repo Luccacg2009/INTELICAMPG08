@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Menu, X, ChevronDown, User, LogOut, LayoutDashboard, Lightbulb, MessageSquare, Settings, BarChart2, Users, FileText, UserCog } from 'lucide-react';
+import { Menu, X, ChevronDown, User, LogOut, LayoutDashboard, Lightbulb, MessageSquare, Settings, Users, FileText, UserCog } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 
 interface LayoutProps {
@@ -9,16 +9,15 @@ interface LayoutProps {
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'ANALYST'] },
-  { name: 'Minhas Ideias', href: '/dashboard/my-ideas', icon: Lightbulb, roles: ['PARTICIPANT', 'ANALYST', 'ADMIN'] },
-  { name: 'Ideias para Análise', href: '/dashboard/ideas', icon: FileText, roles: ['ANALYST', 'ADMIN'] },
-  { name: 'Feedbacks', href: '/dashboard/feedbacks', icon: MessageSquare, roles: ['ANALYST', 'ADMIN'] },
+  { name: 'Projetos', href: '/projects', icon: Lightbulb, roles: ['WORKER', 'ANALYST', 'ADMIN'] },
+  { name: 'Minhas Ideias', href: '/my-ideas', icon: MessageSquare, roles: ['WORKER', 'ANALYST', 'ADMIN'] },
+  { name: 'Ideias para Análise', href: '/ideas', icon: FileText, roles: ['ANALYST', 'ADMIN'] },
 ];
 
 const adminNavigation = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard, roles: ['ADMIN'] },
   { name: 'Usuários', href: '/admin/users', icon: Users, roles: ['ADMIN'] },
   { name: 'Todas as Ideias', href: '/admin/ideas', icon: FileText, roles: ['ADMIN'] },
-  { name: 'Relatórios', href: '/admin/reports', icon: BarChart2, roles: ['ADMIN'] },
   { name: 'Configurações', href: '/admin/settings', icon: Settings, roles: ['ADMIN'] },
 ];
 
