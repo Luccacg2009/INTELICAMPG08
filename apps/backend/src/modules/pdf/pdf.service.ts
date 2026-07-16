@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import PDFDocument from 'pdfkit';
 import { Project } from '../projects/project.entity';
+import { PriorityColor } from '../../common/enums/user.enums';
 
 @Injectable()
 export class PDFService {
@@ -18,6 +19,19 @@ export class PDFService {
     });
   }
 
+  private getPriorityColorHex(priorityColor: PriorityColor | string): string {
+    switch (priorityColor) {
+      case 'GREEN':
+        return '#16a34a'; // green-600
+      case 'YELLOW':
+        return '#ca8a04'; // yellow-600
+      case 'RED':
+        return '#dc2626'; // red-600
+      default:
+        return '#6b7280'; // gray-500
+    }
+  }
+
   private buildProjectPdf(doc: PDFKit.PDFDocument, project: Project): void {
     // Header
     doc.fontSize(24).font('Helvetica-Bold').fillColor('#1e3a5f').text('AZUL LINHAS AÉREAS', { align: 'center' });
@@ -28,11 +42,16 @@ export class PDFService {
     // Project Info
     doc.fontSize(12).fillColor('#333');
     
+    const priorityColorHex = this.getPriorityColorHex(project.priorityColor);
+    const priorityColorLabel = project.priorityColor === 'GREEN' ? 'Verde (Alta)' : 
+                               project.priorityColor === 'YELLOW' ? 'Amarelo (Média)' : 
+                               project.priorityColor === 'RED' ? 'Vermelho (Baixa)' : 'Não definida';
+
     const info = [
       ['Título:', project.title],
       ['Vertical:', project.vertical],
       ['Status:', project.status],
-      ['Prioridade:', project.priority],
+      ['Prioridade:', `${project.priority} (${priorityColorLabel})`],
       ['Orçamento:', project.budget ? `R$ ${project.budget.toLocaleString('pt-BR')}` : 'Não informado'],
       ['Prazo:', project.timeline || 'Não informado'],
     ];
@@ -41,6 +60,14 @@ export class PDFService {
       doc.font('Helvetica-Bold').text(label, { continued: true });
       doc.font('Helvetica').text(` ${value}`);
     });
+
+    // Priority color indicator bar
+    doc.moveDown(0.5);
+    const x = 50;
+    const y = doc.y;
+    doc.rect(x, y, 100, 8).fill(priorityColorHex);
+    doc.fillColor('#fff').fontSize(9).font('Helvetica-Bold').text(priorityColorLabel, x, y + 1, { width: 100, align: 'center' });
+    doc.fillColor('#333');
 
     doc.moveDown(1.5);
 

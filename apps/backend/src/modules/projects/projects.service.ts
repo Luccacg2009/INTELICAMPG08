@@ -245,7 +245,7 @@ export class ProjectsService {
     const project = await this.findById(id);
     
     const prompt = `
-    Analise este projeto da Azul Linhas Aéreas e forneça um resumo executivo, pontos fortes, pontos fracos e sugestões de desenvolvimento.
+    Analise este projeto da Azul Linhas Aéreas e forneça um resumo executivo, análise de viabilidade, pontos fortes, pontos fracos e sugestões de desenvolvimento.
     
     Título: ${project.title}
     Descrição: ${project.description}
@@ -255,6 +255,7 @@ export class ProjectsService {
     Orçamento: ${project.budget || 'Não informado'}
     Prazo: ${project.timeline || 'Não informado'}
     Prioridade: ${project.priority}
+    Cor da Prioridade: ${project.priorityColor} (Verde=Alta, Amarelo=Média, Vermelho=Baixa - baseado em benchmarks históricos)
     `;
 
     const analysis = await this.aiService.analyzeProject(prompt);
