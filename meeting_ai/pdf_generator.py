@@ -2,9 +2,10 @@ from fpdf import FPDF
 from datetime import datetime
 from typing import Optional, List
 from dataclasses import dataclass
+from pathlib import Path
 from meeting_ai.config import config
 
-# Azul principal da marca
+# Cores principais
 AZUL_PRINCIPAL = (0, 70, 130)      # Azul escuro principal
 AZUL_CLARO = (0, 120, 200)         # Azul médio
 AZUL_MUITO_CLARO = (230, 240, 250) # Azul bem claro para fundos
@@ -13,12 +14,32 @@ CINZA_ESCURO = (30, 30, 30)
 CINZA_MEDIO = (100, 100, 100)
 CINZA_CLARO = (200, 200, 200)
 
+# Cores brasileiras para detalhes decorativos
+VERDE_BRASIL = (0, 156, 59)        # Verde da bandeira
+AMARELO_BRASIL = (255, 223, 0)     # Amarelo da bandeira
+
+# Caminho dos assets
+ASSETS_DIR = Path(__file__).parent / "assets"
+SABIA_IMAGE = ASSETS_DIR / "sabia.png"
+
 
 class MeetingPDF(FPDF):
+    def __init__(self):
+        super().__init__()
+        self._draw_decorations = True
+    
     def header(self):
         # Barra azul no topo
         self.set_fill_color(*AZUL_PRINCIPAL)
         self.rect(0, 0, 210, 18, 'F')
+        
+        # Linha decorativa verde-amarela (Brasil) abaixo do header
+        self.set_draw_color(*VERDE_BRASIL)
+        self.set_line_width(1.5)
+        self.line(0, 18, 210, 18)
+        self.set_draw_color(*AMARELO_BRASIL)
+        self.set_line_width(1)
+        self.line(0, 19.5, 210, 19.5)
         
         self.set_font('Helvetica', 'B', 16)
         self.set_text_color(*BRANCO)
@@ -27,15 +48,58 @@ class MeetingPDF(FPDF):
         self.ln(4)
     
     def footer(self):
-        self.set_y(-20)
-        # Linha azul fina
-        self.set_draw_color(*AZUL_PRINCIPAL)
-        self.set_line_width(0.5)
+        self.set_y(-25)
+        # Linha decorativa brasileira no rodapé
+        self.set_draw_color(*AMARELO_BRASIL)
+        self.set_line_width(1)
         self.line(10, self.get_y(), 200, self.get_y())
-        self.ln(2)
+        self.set_draw_color(*VERDE_BRASIL)
+        self.set_line_width(1.5)
+        self.line(10, self.get_y() + 1.5, 200, self.get_y() + 1.5)
+        
+        self.ln(5)
         self.set_font('Helvetica', 'I', 8)
         self.set_text_color(*CINZA_MEDIO)
         self.cell(0, 10, f'Página {self.page_no()}/{{nb}}', 0, 0, 'C')
+        
+        # Pequeno pássaro decorativo no rodapé (canto inferior direito)
+        if self._draw_decorations and SABIA_IMAGE.exists():
+            try:
+                self.image(str(SABIA_IMAGE), x=185, y=self.get_y() - 2, w=8, h=8)
+            except Exception:
+                pass
+    
+    def _draw_watermark_bird(self):
+        """Desenha o pássaro sabiá como marca d'água sutil no centro da página"""
+        if not self._draw_decorations or not SABIA_IMAGE.exists():
+            return
+        try:
+            # Posição central com transparência simulada (desenha com cor clara)
+            page_w = self.w
+            page_h = self.h
+            img_w = 60
+            img_h = 60
+            x = (page_w - img_w) / 2
+            y = (page_h - img_h) / 2
+            
+            # Salva estado atual
+            self.set_alpha(0.08)  # Transparência baixa para marca d'água
+            self.image(str(SABIA_IMAGE), x=x, y=y, w=img_w, h=img_h)
+            self.set_alpha(1.0)  # Restaura opacidade
+        except Exception:
+            self.set_alpha(1.0)
+    
+    def _draw_corner_birds(self):
+        """Desenha pequenos pássaros nos cantos da página"""
+        if not self._draw_decorations or not SABIA_IMAGE.exists():
+            return
+        try:
+            # Canto superior esquerdo
+            self.image(str(SABIA_IMAGE), x=5, y=25, w=12, h=12)
+            # Canto superior direito
+            self.image(str(SABIA_IMAGE), x=193, y=25, w=12, h=12)
+        except Exception:
+            pass
     
     def section_title(self, title: str):
         # Fundo azul claro para título da seção
@@ -44,9 +108,14 @@ class MeetingPDF(FPDF):
         y_before = self.get_y()
         self.rect(10, y_before, 190, 10, 'FD')
         
+        # Pequena linha decorativa amarela à esquerda do título
+        self.set_draw_color(*AMARELO_BRASIL)
+        self.set_line_width(2)
+        self.line(11, y_before + 2, 11, y_before + 8)
+        
         self.set_font('Helvetica', 'B', 12)
         self.set_text_color(*AZUL_PRINCIPAL)
-        self.set_xy(15, y_before + 1)
+        self.set_xy(18, y_before + 1)
         self.cell(180, 8, title, 0, 1, 'L')
         self.ln(4)
     
@@ -61,7 +130,7 @@ class MeetingPDF(FPDF):
         self.set_text_color(*CINZA_ESCURO)
         for item in items:
             self.set_x(18)
-            # Bullet simples (traço) - compatível com fonte padrão
+            # Bullet azul
             self.set_text_color(*AZUL_PRINCIPAL)
             self.cell(6, 5.5, '- ')
             self.set_text_color(*CINZA_ESCURO)
@@ -101,6 +170,16 @@ class MeetingPDF(FPDF):
         self.set_fill_color(*AZUL_PRINCIPAL)
         self.rect(10, self.get_y(), 190, 3, 'F')
         
+        # Detalhe brasileiro: pequenas linhas verde/amarela nas laterais
+        self.set_draw_color(*VERDE_BRASIL)
+        self.set_line_width(2)
+        self.line(10, self.get_y(), 10, self.get_y() + 20)
+        self.line(200, self.get_y(), 200, self.get_y() + 20)
+        self.set_draw_color(*AMARELO_BRASIL)
+        self.set_line_width(1)
+        self.line(12, self.get_y(), 12, self.get_y() + 20)
+        self.line(198, self.get_y(), 198, self.get_y() + 20)
+        
         # Label text
         self.set_text_color(*BRANCO)
         self.set_font('Helvetica', 'B', 12)
@@ -114,6 +193,52 @@ class MeetingPDF(FPDF):
         
         self.ln(10)
         self.set_text_color(*CINZA_ESCURO)
+    
+    def _draw_sabia_watermark(self):
+        """Desenha o sabiá como marca d'água central (se imagem existir)"""
+        if SABIA_IMAGE.exists():
+            try:
+                # Marca d'água central grande com transparência simulada
+                self.set_alpha(0.08)
+                self.image(str(SABIA_IMAGE), x=55, y=60, w=100)
+                self.set_alpha(1.0)
+            except Exception:
+                pass  # Ignora se houver erro com a imagem
+    
+    def _draw_corner_sabias(self):
+        """Desenha pequenos sabiás nos cantos das páginas"""
+        if SABIA_IMAGE.exists():
+            try:
+                self.set_alpha(0.15)
+                # Canto superior esquerdo
+                self.image(str(SABIA_IMAGE), x=12, y=22, w=18)
+                # Canto superior direito
+                self.image(str(SABIA_IMAGE), x=180, y=22, w=18)
+                # Canto inferior esquerdo
+                self.image(str(SABIA_IMAGE), x=12, y=255, w=15)
+                # Canto inferior direito
+                self.image(str(SABIA_IMAGE), x=183, y=255, w=15)
+                self.set_alpha(1.0)
+            except Exception:
+                pass  # Ignora se houver erro com a imagem
+    
+    def _draw_brazilian_border(self):
+        """Desenha uma borda sutil inspirada na bandeira brasileira"""
+        # Linha verde fina no topo
+        self.set_draw_color(*VERDE_BRASIL)
+        self.set_line_width(0.8)
+        self.line(10, 18, 200, 18)
+        
+        # Linha amarela fina abaixo
+        self.set_draw_color(*AMARELO_BRASIL)
+        self.set_line_width(0.4)
+        self.line(10, 19, 200, 19)
+        
+        # Linhas laterais sutis
+        self.set_draw_color(*VERDE_BRASIL)
+        self.set_line_width(0.3)
+        self.line(10, 18, 10, 277)
+        self.line(200, 18, 200, 277)
 
 
 @dataclass
@@ -140,13 +265,18 @@ def generate_meeting_pdf(
     pdf.set_auto_page_break(auto=True, margin=20)
     pdf.add_page()
     
+    # Elementos decorativos brasileiros
+    pdf._draw_brazilian_border()
+    pdf._draw_sabia_watermark()
+    pdf._draw_corner_sabias()
+    
     # Classification Banner (top)
     if summary.classification:
         pdf.classification_banner(summary.classification, summary.classification_reason)
     
     # Header info
     pdf.set_font('Helvetica', 'B', 14)
-    pdf.set_text_color(0, 51, 102)
+    pdf.set_text_color(*AZUL_PRINCIPAL)
     pdf.cell(0, 10, summary.title or title or 'Reunião', 0, 1, 'C')
     pdf.ln(2)
     
