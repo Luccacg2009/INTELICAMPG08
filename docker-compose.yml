@@ -34,12 +34,13 @@ services:
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4-turbo-preview}
     ports:
       - "3000:3000"
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./apps/backend:/app
-      - /app/node_modules
+    # Sem bind-mount de código: o container roda exatamente o que foi buildado na imagem.
+    # Isso evita o problema de node_modules obsoleto entre máquinas. Para editar o código,
+    # rode `docker compose up -d --build`.
 
   frontend:
     build:
@@ -50,11 +51,9 @@ services:
       VITE_API_URL: http://localhost:3000
     ports:
       - "5173:5173"
+    restart: unless-stopped
     depends_on:
       - backend
-    volumes:
-      - ./apps/frontend:/app
-      - /app/node_modules
     command: npm run dev -- --host 0.0.0.0
 
 volumes:
