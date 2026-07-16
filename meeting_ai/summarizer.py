@@ -56,12 +56,12 @@ TRANSCRIÇÃO:
 
 class LLMSummarizer:
     def __init__(self):
-        self.use_local = config.use_local_llm
-        self.ollama_model = config.ollama_model
+        self.llm_provider = config.llm_provider
+        self.ollama_model = config.llm_model
         self.ollama_host = config.ollama_host
     
     def summarize(self, transcript: str, language: str = "pt") -> MeetingSummary:
-        if self.use_local:
+        if self.llm_provider == "ollama":
             return self._summarize_local(transcript, language)
         else:
             return self._summarize_api(transcript, language)
