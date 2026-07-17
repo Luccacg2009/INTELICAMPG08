@@ -10,14 +10,14 @@ export class RefreshToken {
   @Column({ type: 'varchar', length: 500 })
   token: string;
 
-  @Column({ name: 'user_id', type: 'uuid' })
+  @Column({ name: 'user_id', type: 'varchar' })
   userId: string;
 
   @ManyToOne(() => User, user => user.refreshTokens, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ name: 'expires_at', type: 'timestamp' })
+  @Column({ name: 'expires_at', type: 'datetime' })
   expiresAt: Date;
 
   @CreateDateColumn({ name: 'created_at' })

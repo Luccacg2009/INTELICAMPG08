@@ -28,19 +28,19 @@ export class Project {
   @Column({ type: 'varchar', length: 50, nullable: true })
   timeline: string;
 
-  @Column({ type: 'enum', enum: ProjectPriority, default: ProjectPriority.MEDIUM })
+  @Column({ type: 'simple-enum', enum: ProjectPriority, default: ProjectPriority.MEDIUM })
   priority: ProjectPriority;
 
-  @Column({ type: 'enum', enum: PriorityColor, default: PriorityColor.YELLOW, name: 'priority_color' })
+  @Column({ type: 'simple-enum', enum: PriorityColor, default: PriorityColor.YELLOW, name: 'priority_color' })
   priorityColor: PriorityColor;
 
-  @Column({ type: 'enum', enum: ProjectStatus, default: ProjectStatus.DRAFT })
+  @Column({ type: 'simple-enum', enum: ProjectStatus, default: ProjectStatus.DRAFT })
   status: ProjectStatus;
 
-  @Column({ type: 'enum', enum: UserVertical })
+  @Column({ type: 'simple-enum', enum: UserVertical })
   vertical: UserVertical;
 
-  @Column({ name: 'author_id', type: 'uuid' })
+  @Column({ name: 'author_id', type: 'varchar' })
   authorId: string;
 
   @ManyToOne(() => User, user => user.projects)

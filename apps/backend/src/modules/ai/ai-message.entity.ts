@@ -9,14 +9,14 @@ export class AIMessage {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'conversation_id', type: 'uuid' })
+  @Column({ name: 'conversation_id', type: 'varchar' })
   conversationId: string;
 
   @ManyToOne(() => AIConversation, conversation => conversation.messages, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'conversation_id' })
   conversation: AIConversation;
 
-  @Column({ name: 'user_id', type: 'uuid' })
+  @Column({ name: 'user_id', type: 'varchar' })
   userId: string;
 
   @ManyToOne(() => User)
@@ -29,7 +29,7 @@ export class AIMessage {
   @Column('text')
   content: string;
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: 'simple-json', nullable: true })
   metadata: any;
 
   @CreateDateColumn({ name: 'created_at' })

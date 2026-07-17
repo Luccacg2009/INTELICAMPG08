@@ -17,19 +17,14 @@ import { RefreshToken } from './modules/users/refresh-token.entity';
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     TypeOrmModule.forRoot({
-      type: 'postgres',
-      ...(process.env.DATABASE_URL
-        ? { url: process.env.DATABASE_URL }
-        : {
-            host: process.env.DB_HOST || 'localhost',
-            port: parseInt(process.env.DB_PORT || '5432'),
-            username: process.env.DB_USERNAME || 'postgres',
-            password: process.env.DB_PASSWORD || 'postgres',
-            database: process.env.DB_NAME || 'marketing_azul',
-          }),
+      type: 'better-sqlite3',
+      // Banco em arquivo local — nenhum servidor externo é necessário.
+      // O arquivo é criado automaticamente no primeiro boot.
+      database: process.env.DATABASE_PATH || 'marketing_azul.sqlite',
       entities: [User, Project, ProjectEvaluation, AIConversation, AIMessage, RefreshToken],
       autoLoadEntities: true,
-      synchronize: process.env.NODE_ENV !== 'production',
+      // synchronize cria/atualiza as tabelas a partir das entidades no boot.
+      synchronize: true,
       logging: process.env.NODE_ENV !== 'production',
     }),
     AuthModule,

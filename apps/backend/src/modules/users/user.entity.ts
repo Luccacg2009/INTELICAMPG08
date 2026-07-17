@@ -22,10 +22,10 @@ export class User {
   @Column({ type: 'varchar', length: 200 })
   name: string;
 
-  @Column({ type: 'enum', enum: UserRole, default: UserRole.WORKER })
+  @Column({ type: 'simple-enum', enum: UserRole, default: UserRole.WORKER })
   role: UserRole;
 
-  @Column({ type: 'enum', enum: UserVertical, default: UserVertical.MARKETING, nullable: true })
+  @Column({ type: 'simple-enum', enum: UserVertical, default: UserVertical.MARKETING, nullable: true })
   vertical: UserVertical;
 
   @Column({ name: 'avatar_url', type: 'varchar', length: 500, nullable: true })
@@ -34,7 +34,7 @@ export class User {
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 
-  @Column({ name: 'last_login_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'last_login_at', type: 'datetime', nullable: true })
   lastLoginAt: Date;
 
   @Column({ name: 'must_change_password', type: 'boolean', default: true })

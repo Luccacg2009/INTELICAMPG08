@@ -1,3 +1,13 @@
 node_modules
-node_modules
 dist
+
+# Banco de dados SQLite (gerado localmente)
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+*.db
+
+# Logs / temporários
+*.log
+.turbo

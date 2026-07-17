@@ -10,14 +10,14 @@ export class AIConversation {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'project_id', type: 'uuid', nullable: true })
+  @Column({ name: 'project_id', type: 'varchar', nullable: true })
   projectId: string;
 
   @ManyToOne(() => Project)
   @JoinColumn({ name: 'project_id' })
   project: Project;
 
-  @Column({ name: 'user_id', type: 'uuid' })
+  @Column({ name: 'user_id', type: 'varchar' })
   userId: string;
 
   @ManyToOne(() => User, user => user.aiConversations)

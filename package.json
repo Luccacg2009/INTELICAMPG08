@@ -11,9 +11,7 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "db:generate": "turbo run db:generate",
-    "db:push": "turbo run db:push",
-    "db:studio": "turbo run db:studio"
+    "seed": "pnpm --filter @marketing-azul/backend run db:seed"
   },
   "devDependencies": {
     "turbo": "^2.10.5",
@@ -22,9 +20,7 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild",
-      "prisma",
-      "@prisma/client",
-      "@prisma/engines",
+      "better-sqlite3",
       "@nestjs/core"
     ]
   },

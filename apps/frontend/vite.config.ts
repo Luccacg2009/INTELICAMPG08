@@ -18,10 +18,16 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // host: true + allowedHosts liberam o acesso via URL encaminhada do Codespaces.
+    host: true,
+    allowedHosts: true,
     proxy: {
+      // Redireciona /api/* para o backend, removendo o prefixo /api
+      // (o backend serve as rotas sem esse prefixo: /auth, /users, ...).
       '/api': {
         target: 'http://localhost:3000',
         changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
   },

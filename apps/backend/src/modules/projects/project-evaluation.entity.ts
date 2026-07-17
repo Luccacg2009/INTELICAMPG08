@@ -9,21 +9,21 @@ export class ProjectEvaluation {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'project_id', type: 'uuid' })
+  @Column({ name: 'project_id', type: 'varchar' })
   projectId: string;
 
   @ManyToOne(() => Project, project => project.evaluations, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'project_id' })
   project: Project;
 
-  @Column({ name: 'evaluator_id', type: 'uuid' })
+  @Column({ name: 'evaluator_id', type: 'varchar' })
   evaluatorId: string;
 
   @ManyToOne(() => User, user => user.evaluations)
   @JoinColumn({ name: 'evaluator_id' })
   evaluator: User;
 
-  @Column({ type: 'enum', enum: ProjectStatus })
+  @Column({ type: 'simple-enum', enum: ProjectStatus })
   status: ProjectStatus;
 
   @Column({ nullable: true, type: 'text' })
@@ -41,7 +41,7 @@ export class ProjectEvaluation {
   @Column({ default: 0, type: 'int' })
   score: number;
 
-  @Column({ name: 'reviewed_at', nullable: true, type: 'timestamp' })
+  @Column({ name: 'reviewed_at', nullable: true, type: 'datetime' })
   reviewedAt: Date;
 
   @CreateDateColumn({ name: 'created_at' })

@@ -21,21 +21,21 @@ export class AIFeedback {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'project_id', type: 'uuid' })
+  @Column({ name: 'project_id', type: 'varchar' })
   projectId: string;
 
   @ManyToOne(() => Project)
   @JoinColumn({ name: 'project_id' })
   project: Project;
 
-  @Column({ name: 'analyst_id', type: 'uuid' })
+  @Column({ name: 'analyst_id', type: 'varchar' })
   analystId: string;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'analyst_id' })
   analyst: User;
 
-  @Column({ type: 'enum', enum: AIFeedbackType })
+  @Column({ type: 'simple-enum', enum: AIFeedbackType })
   type: AIFeedbackType;
 
   @Column({ type: 'text' })
@@ -47,19 +47,19 @@ export class AIFeedback {
   @Column({ name: 'negative_reason', type: 'text', nullable: true })
   negativeReason: string;
 
-  @Column({ type: 'enum', enum: AIFeedbackStatus, default: AIFeedbackStatus.PENDING })
+  @Column({ type: 'simple-enum', enum: AIFeedbackStatus, default: AIFeedbackStatus.PENDING })
   status: AIFeedbackStatus;
 
   @Column({ name: 'ai_processed_content', type: 'text', nullable: true })
   aiProcessedContent: string;
 
-  @Column({ name: 'sent_to_vertical_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'sent_to_vertical_at', type: 'datetime', nullable: true })
   sentToVerticalAt: Date;
 
-  @Column({ name: 'sent_to_admin_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'sent_to_admin_at', type: 'datetime', nullable: true })
   sentToAdminAt: Date;
 
-  @Column({ name: 'processed_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'processed_at', type: 'datetime', nullable: true })
   processedAt: Date;
 
   @CreateDateColumn({ name: 'created_at' })

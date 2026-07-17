@@ -1,4 +1,7 @@
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+// Por padrão usa caminho relativo '/api', que o dev server do Vite redireciona
+// para o backend (ver proxy em vite.config.ts). Isso funciona tanto localmente
+// quanto no GitHub Codespaces sem precisar expor a porta 3000 nem lidar com CORS.
+export const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 export const VERTICALS = [
   { value: 'MARKETING', label: 'Marketing' },
