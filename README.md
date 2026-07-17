@@ -13,6 +13,11 @@ criado automaticamente. Roda direto no **GitHub Codespaces** ou na sua máquina.
 > Esta seção é um roteiro **determinístico** para uma IA (ou qualquer pessoa) subir o
 > projeto do zero. Rode os comandos **na ordem** e a partir da **raiz do repositório**.
 > Não há passos interativos.
+>
+> **Atalho no Codespaces:** este repositório tem um `.devcontainer`. Ao abrir via
+> **Codespaces**, os Passos 0, 1 e 2 (pnpm + `pnpm install` + `pnpm seed`) rodam
+> **automaticamente** na criação. Nesse caso, vá direto para o **Passo 3** (`pnpm dev`).
+> Os passos abaixo continuam válidos para rodar localmente ou refazer o setup à mão.
 
 ### Passo 0 — Garantir o pnpm (o gerenciador de pacotes)
 
@@ -179,8 +184,9 @@ pnpm --filter @marketing-azul/frontend run dev
 ## Estrutura
 
 ```
+.devcontainer/  config do GitHub Codespaces (Node 20, pnpm, portas, setup automático)
 apps/
-  backend/    NestJS + TypeORM (SQLite)   — API em :3000
-  frontend/   React + Vite                — UI em :5173 (proxy /api → backend)
-package.json  scripts do monorepo (pnpm + turbo)
+  backend/      NestJS + TypeORM (SQLite)   — API em :3000
+  frontend/     React + Vite                — UI em :5173 (proxy /api → backend)
+package.json    scripts do monorepo (pnpm + turbo)
 ```

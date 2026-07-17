@@ -1,0 +1,34 @@
+{
+  "name": "Marketing Azul",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:20",
+
+  // Portas: 5173 (frontend/UI) e 3000 (API interna).
+  // Só a 5173 precisa ser acessada no navegador — o frontend fala com o backend
+  // por um proxy interno em /api (ver README).
+  "forwardPorts": [5173, 3000],
+  "portsAttributes": {
+    "5173": {
+      "label": "Frontend (UI)",
+      "onAutoForward": "openBrowserOnce"
+    },
+    "3000": {
+      "label": "Backend (API)",
+      "onAutoForward": "silent"
+    }
+  },
+
+  // Habilita o pnpm (via corepack, que já vem com o Node) e, em seguida,
+  // instala as dependências e popula os usuários padrão ao criar o Codespace.
+  "onCreateCommand": "corepack enable pnpm && corepack prepare pnpm@9 --activate",
+  "postCreateCommand": "pnpm install && pnpm seed",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss"
+      ]
+    }
+  }
+}

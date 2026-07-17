@@ -1,5 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
+/* Entry de estilos. Todo o CSS real (Tailwind + componentes) fica em globals.css.
+   O @import precisa ser a primeira instrução do arquivo. */
 @import './globals.css';
