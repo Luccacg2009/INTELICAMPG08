@@ -15,7 +15,7 @@ import { CrmDashboard, CompaniesList, ContactsList, DealsList, ActivitiesList } 
 import { VerticalsManagement } from './pages/verticals/VerticalsManagement';
 import { PostMortemsList, PostMortemDetail } from './pages/post-mortem';
 import { UserProfile } from './pages/profile';
-import { ProjectsList, ProjectDetail } from './pages/projects';
+import { ProjectsList, ProjectDetail, NewProject } from './pages/projects';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 function LayoutWrapper() {
@@ -40,6 +40,7 @@ function App() {
 <Route element={<LayoutWrapper />}>
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/ideas" element={<ProtectedRoute allowedRoles={['ANALYST', 'ADMIN']}><IdeasList /></ProtectedRoute>} />
+          <Route path="/ideas/new" element={<Navigate to="/projects/new" replace />} />
           <Route path="/ideas/:id" element={<ProtectedRoute allowedRoles={['ANALYST', 'ADMIN']}><IdeaDetail /></ProtectedRoute>} />
           <Route path="/my-ideas" element={<ProtectedRoute allowedRoles={['WORKER', 'ANALYST', 'ADMIN']}><MyIdeas /></ProtectedRoute>} />
           {/* Admin Routes */}
@@ -60,6 +61,7 @@ function App() {
           <Route path="/post-mortems/:id" element={<ProtectedRoute allowedRoles={['WORKER', 'ANALYST', 'ADMIN']}><PostMortemDetail /></ProtectedRoute>} />
           {/* Projects Routes */}
           <Route path="/projects" element={<ProtectedRoute allowedRoles={['WORKER', 'ANALYST', 'ADMIN']}><ProjectsList /></ProtectedRoute>} />
+          <Route path="/projects/new" element={<ProtectedRoute allowedRoles={['WORKER', 'ANALYST', 'ADMIN']}><NewProject /></ProtectedRoute>} />
           <Route path="/projects/:id" element={<ProtectedRoute allowedRoles={['WORKER', 'ANALYST', 'ADMIN']}><ProjectDetail /></ProtectedRoute>} />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

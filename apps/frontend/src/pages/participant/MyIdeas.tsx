@@ -20,7 +20,7 @@ export function MyIdeas() {
 
   const fetchIdeas = async () => {
     try {
-      const response = await api.get('/ideas/my-ideas');
+      const response = await api.get('/projects', { params: { limit: 100 } });
       setIdeas(response.data.data || response.data.ideas || response.data);
     } catch (error) {
       console.error('Error fetching ideas:', error);
@@ -32,7 +32,7 @@ export function MyIdeas() {
 
   const handleDelete = async (id: string) => {
     try {
-      await api.delete(`/ideas/${id}`);
+      await api.delete(`/projects/${id}`);
       toast.success('Ideia excluída com sucesso!');
       setDeleteModal(null);
       fetchIdeas();
@@ -60,7 +60,7 @@ export function MyIdeas() {
           <h1 className="text-2xl font-bold text-gray-900">Minhas Ideias</h1>
           <p className="text-gray-500 mt-1">Acompanhe o status das suas sugestões de produtos</p>
         </div>
-        <Link to="/ideas/new">
+        <Link to="/projects/new">
           <Button variant="primary"><Lightbulb className="w-4 h-4" /> Nova Ideia</Button>
         </Link>
       </div>
@@ -75,7 +75,7 @@ export function MyIdeas() {
             <Lightbulb className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma ideia submetida</h3>
             <p className="text-gray-500 mb-6">Comece a contribuir com suas ideias de produtos para a Empresa Azul</p>
-            <Link to="/ideas/new">
+            <Link to="/projects/new">
               <Button variant="primary"><Lightbulb className="w-4 h-4" /> Criar Minha Primeira Ideia</Button>
             </Link>
           </CardContent>
@@ -108,14 +108,14 @@ export function MyIdeas() {
                   )}
 
                   <div className="flex gap-2">
-                    <Link to={`/ideas/${idea.id}`} className="flex-1">
+                    <Link to={`/projects/${idea.id}`} className="flex-1">
                       <Button variant="outline" size="sm" className="w-full">
                         <Eye className="w-4 h-4" /> Ver Detalhes
                       </Button>
                     </Link>
                     {idea.status === 'PENDING_REVIEW' && (
                       <>
-                        <Link to={`/ideas/${idea.id}/edit`} className="flex-1">
+                        <Link to={`/projects/${idea.id}`} className="flex-1">
                           <Button variant="ghost" size="sm" className="w-full">
                             <Edit className="w-4 h-4" />
                           </Button>

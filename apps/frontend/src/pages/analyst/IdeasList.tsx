@@ -17,25 +17,24 @@ export function IdeasList() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
 
-  const filters: IdeaListQuery = {
-    search: search || undefined,
-    status: statusFilter || undefined,
-    vertical: verticalFilter || undefined,
-    page,
-    limit: 10,
-  };
-
   useEffect(() => {
     fetchIdeas();
-  }, [filters]);
+  }, [search, statusFilter, verticalFilter, page]);
 
   const fetchIdeas = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/ideas', { params: filters });
+      const filters: IdeaListQuery = {
+        search: search || undefined,
+        status: statusFilter || undefined,
+        vertical: verticalFilter || undefined,
+        page,
+        limit: 10,
+      };
+      const response = await api.get('/projects', { params: filters });
       setIdeas(response.data.data || response.data.ideas || response.data);
       setTotal(response.data.total || 0);
-      setTotalPages(response.data.totalPages || 1);
+      setTotalPages(Math.max(1, Math.ceil((response.data.total || 0) / 10)));
     } catch (error) {
       console.error('Error fetching ideas:', error);
     } finally {

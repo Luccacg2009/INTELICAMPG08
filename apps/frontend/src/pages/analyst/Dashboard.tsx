@@ -28,8 +28,8 @@ export function Dashboard() {
   const fetchStats = async () => {
     try {
       const [ideasRes, feedbacksRes] = await Promise.all([
-        api.get('/ideas', { params: { limit: 100 } }),
-        api.get('/feedbacks/my-feedbacks'),
+        api.get('/projects', { params: { limit: 100 } }),
+        api.get('/projects/my-evaluations'),
       ]);
       const ideas = ideasRes.data.data || ideasRes.data.ideas || ideasRes.data;
       setStats({
@@ -46,7 +46,7 @@ export function Dashboard() {
 
   const fetchRecentIdeas = async () => {
     try {
-      const response = await api.get('/ideas', { params: { limit: 5, sortBy: 'createdAt', sortOrder: 'desc' } });
+      const response = await api.get('/projects', { params: { limit: 5 } });
       setRecentIdeas(response.data.data || response.data.ideas || response.data);
     } catch (error) {
       console.error('Error fetching recent ideas:', error);
@@ -69,7 +69,7 @@ export function Dashboard() {
           <h1 className="text-2xl font-bold text-gray-900">Dashboard do Analista</h1>
           <p className="text-gray-500 mt-1">Bem-vindo, {user?.name}! Acompanhe as ideias para análise.</p>
         </div>
-        <Link to="/ideas/new">
+        <Link to="/projects/new">
           <Button variant="primary"><Lightbulb className="w-4 h-4" /> Nova Ideia</Button>
         </Link>
       </div>
@@ -152,7 +152,7 @@ export function Dashboard() {
                 </div>
               </div>
             </Link>
-            <Link to="/ideas/new" className="block p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+            <Link to="/projects/new" className="block p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-100 rounded-lg"><Lightbulb className="w-5 h-5 text-purple-600" /></div>
                 <div>

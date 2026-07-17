@@ -8,6 +8,7 @@ import { Modal } from '../../components/ui/Modal';
 import { api } from '../../services/api';
 import { Project, ProjectStatus, ProjectPriority, ProjectPriorityColor, UserVertical } from '../../types';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const statusLabels: Record<ProjectStatus, string> = {
   DRAFT: 'Rascunho',
@@ -74,6 +75,7 @@ interface ProjectsListResponse {
 }
 
 export function ProjectsList() {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -257,7 +259,7 @@ export function ProjectsList() {
           <h1 className="text-2xl font-bold text-gray-900">Projetos</h1>
           <p className="text-gray-500 mt-1">Gerencie projetos de marketing da Azul</p>
         </div>
-        <Button onClick={openCreateModal} leftIcon={<Plus className="w-4 h-4" />}>
+        <Button onClick={() => navigate('/projects/new')} leftIcon={<Plus className="w-4 h-4" />}>
           Novo Projeto
         </Button>
       </div>

@@ -6,7 +6,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { api } from '../../services/api';
-import { Idea, ReviewIdeaDto, CreateFeedbackDto, RequestAIDeletionDto } from '../../types';
+import { Idea, CreateFeedbackDto, RequestAIDeletionDto } from '../../types';
 import toast from 'react-hot-toast';
 
 export function IdeaDetail() {
@@ -29,7 +29,7 @@ export function IdeaDetail() {
 
   const fetchIdea = async () => {
     try {
-      const response = await api.get(`/ideas/${id}`);
+      const response = await api.get(`/projects/${id}`);
       setIdea(response.data);
     } catch (error) {
       console.error('Error fetching idea:', error);
@@ -44,12 +44,12 @@ export function IdeaDetail() {
     if (!idea) return;
     setSubmitting(true);
     try {
-      await api.patch(`/ideas/${id}/review`, {
-        status: reviewStatus,
+      await api.post(`/projects/${id}/evaluate`, {
+        status: reviewStatus === 'UNDER_REVIEW' ? 'NEEDS_REVISION' : reviewStatus,
         strengths: reviewForm.strengths,
         weaknesses: reviewForm.weaknesses,
-        developmentWays: reviewForm.developmentWays,
-      } as ReviewIdeaDto);
+        suggestions: reviewForm.developmentWays,
+      });
       toast.success(`Ideia ${reviewStatus === 'APPROVED' ? 'aprovada' : 'rejeitada'} com sucesso!`);
       setReviewModal(false);
       fetchIdea();
@@ -93,7 +93,7 @@ export function IdeaDetail() {
   const handleDownloadPdf = async () => {
     if (!idea) return;
     try {
-      const response = await api.get(`/pdf/idea/${id}`, { responseType: 'blob' });
+      const response = await api.get(`/projects/${id}/pdf`, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;

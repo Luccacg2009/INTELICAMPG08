@@ -91,10 +91,10 @@ export function AdminIdeasOverview() {
         ...(statusFilter && { status: statusFilter }),
         ...(verticalFilter && { vertical: verticalFilter }),
       });
-      const response = await api.get<IdeaListResponse>(`/ideas?${params}`);
+      const response = await api.get<IdeaListResponse>(`/projects?${params}`);
       setIdeas(response.data.data || response.data);
       setTotal(response.data.total || 0);
-      setTotalPages(response.data.totalPages || 1);
+      setTotalPages(Math.max(1, Math.ceil((response.data.total || 0) / 10)));
     } catch (error) {
       console.error('Error fetching ideas:', error);
       toast.error('Erro ao carregar ideias');
@@ -105,8 +105,21 @@ export function AdminIdeasOverview() {
 
   const fetchStats = async () => {
     try {
-      const response = await api.get<IdeaStats>('/ideas/stats');
-      setStats(response.data);
+      const response = await api.get<IdeaListResponse>('/projects?limit=1000');
+      const projects = response.data.data || [];
+      setStats({
+        total: response.data.total || projects.length,
+        pendingReview: projects.filter((idea) => idea.status === 'PENDING_REVIEW').length,
+        approved: projects.filter((idea) => idea.status === 'APPROVED').length,
+        rejected: projects.filter((idea) => idea.status === 'REJECTED').length,
+        inDevelopment: projects.filter((idea) => idea.status === 'IN_DEVELOPMENT').length,
+        launched: projects.filter((idea) => idea.status === 'LAUNCHED').length,
+        archived: projects.filter((idea) => idea.status === 'ARCHIVED').length,
+        byVertical: projects.reduce<Record<string, number>>((totals, idea) => {
+          totals[idea.vertical] = (totals[idea.vertical] || 0) + 1;
+          return totals;
+        }, {}),
+      });
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -122,7 +135,7 @@ export function AdminIdeasOverview() {
       return;
     }
     try {
-      await api.delete(`/ideas/${idea.id}`);
+      await api.delete(`/projects/${idea.id}`);
       toast.success('Ideia excluída com sucesso');
       fetchIdeas();
       fetchStats();
@@ -133,7 +146,7 @@ export function AdminIdeasOverview() {
 
   const handleDownloadPdf = async (idea: Idea) => {
     try {
-      const response = await api.get(`/ideas/${idea.id}/pdf`, { responseType: 'blob' });
+      const response = await api.get(`/projects/${idea.id}/pdf`, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
