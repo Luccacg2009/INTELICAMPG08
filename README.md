@@ -1,3 +1,5 @@
+Lucca Collange,Jorge Maués,Giovani Constantino,Rafael Brissi,Julia Leite e Arthur Maciel
+
 # Marketing Azul
 
 Plataforma para integrar o marketing no início dos projetos da companhia.

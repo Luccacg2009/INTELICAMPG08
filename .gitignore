@@ -11,3 +11,7 @@ dist
 # Logs / temporários
 *.log
 .turbo
+
+# Python cache
+__pycache__/
+*.pyc
